@@ -70,7 +70,7 @@
 
 static int nxsem_wait_slow(FAR sem_t *sem)
 {
-  FAR struct tcb_s *rtcb = this_task();
+  FAR struct tcb_s *rtcb;
   irqstate_t flags;
   int ret;
 
@@ -92,13 +92,12 @@ static int nxsem_wait_slow(FAR sem_t *sem)
       ret = nxsem_protect_wait(sem);
       if (ret < 0)
         {
+          atomic_fetch_add(NXSEM_COUNT(sem), 1);
           leave_critical_section(flags);
           return ret;
         }
 
       nxsem_add_holder(sem);
-      rtcb->waitobj = NULL;
-      ret = OK;
     }
 
   /* The semaphore is NOT available, We will have to block the
@@ -110,6 +109,7 @@ static int nxsem_wait_slow(FAR sem_t *sem)
 #ifdef CONFIG_PRIORITY_INHERITANCE
       uint8_t prioinherit = sem->flags & SEM_PRIO_MASK;
 #endif
+      rtcb = this_task();
 
       /* First, verify that the task is not already waiting on a
        * semaphore
@@ -259,10 +259,8 @@ int nxsem_wait(FAR sem_t *sem)
 #if !defined(CONFIG_PRIORITY_INHERITANCE) && !defined(CONFIG_PRIORITY_PROTECT)
   if (sem->flags & SEM_TYPE_MUTEX)
     {
-      short old = 1;
-      if (atomic_compare_exchange_weak_explicit(NXSEM_COUNT(sem), &old, 0,
-                                                memory_order_acquire,
-                                                memory_order_relaxed))
+      int32_t old = 1;
+      if (atomic_try_cmpxchg_acquire(NXSEM_COUNT(sem), &old, 0))
         {
           return OK;
         }

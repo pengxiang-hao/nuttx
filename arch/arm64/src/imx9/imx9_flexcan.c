@@ -1,6 +1,8 @@
 /****************************************************************************
  * arch/arm64/src/imx9/imx9_flexcan.c
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -1911,6 +1913,14 @@ static int imx9_initialize(struct imx9_driver_s *priv)
 
 static void imx9_reset(struct imx9_driver_s *priv)
 {
+  /* Make sure module is enabled */
+
+  if (!imx9_setenable(priv->base, true))
+    {
+      canerr("Enable fail\n");
+      return;
+    }
+
   modifyreg32(priv->base + IMX9_CAN_MCR_OFFSET, 0, CAN_MCR_SOFTRST);
 
   if (!imx9_waitmcr_change(priv->base, CAN_MCR_SOFTRST, false))
@@ -1919,7 +1929,7 @@ static void imx9_reset(struct imx9_driver_s *priv)
       return;
     }
 
-  /* Enable module */
+  /* Disable module */
 
   if (!imx9_setenable(priv->base, false))
     {
@@ -2050,6 +2060,10 @@ int imx9_caninitialize(int intf)
       irq_detach(priv->irq);
       return -EAGAIN;
     }
+
+  /* Disable */
+
+  imx9_setenable(priv->base, false);
 
   /* Initialize the driver structure */
 

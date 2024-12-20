@@ -1,6 +1,8 @@
 /****************************************************************************
  * drivers/wireless/bluetooth/bt_bridge.c
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -25,6 +27,7 @@
 #include <debug.h>
 #include <string.h>
 
+#include <nuttx/irq.h>
 #include <nuttx/kmalloc.h>
 #include <nuttx/atomic.h>
 #include <nuttx/net/snoop.h>
@@ -72,7 +75,7 @@ struct bt_bridge_s
 #ifdef CONFIG_BLUETOOTH_BRIDGE_BTSNOOP
   FAR struct snoop_s       *snoop;
 #endif /* CONFIG_BLUETOOTH_BRIDGE_BTSNOOP */
-  atomic_uint               refs;
+  atomic_t                  refs;
   bool                      dispatched[BT_FILTER_CMD_COUNT];
 };
 

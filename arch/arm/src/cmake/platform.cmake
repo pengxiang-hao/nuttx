@@ -1,6 +1,8 @@
 # ##############################################################################
 # arch/arm/src/cmake/platform.cmake
 #
+# SPDX-License-Identifier: Apache-2.0
+#
 # Licensed to the Apache Software Foundation (ASF) under one or more contributor
 # license agreements.  See the NOTICE file distributed with this work for
 # additional information regarding copyright ownership.  The ASF licenses this
@@ -83,6 +85,6 @@ if(CONFIG_LIBSUPCXX_TOOLCHAIN)
   nuttx_find_toolchain_lib(libsupc++.a)
 endif()
 
-if(CONFIG_SCHED_GCOV)
+if(CONFIG_COVERAGE_TOOLCHAIN)
   nuttx_find_toolchain_lib(libgcov.a)
 endif()

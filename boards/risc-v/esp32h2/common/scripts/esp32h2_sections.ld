@@ -1,6 +1,8 @@
 /****************************************************************************
  * boards/risc-v/esp32h2/common/scripts/esp32h2_sections.ld
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -134,6 +136,7 @@ SECTIONS
     *libarch.a:*esp_rom_spiflash.*(.text .text.* .literal .literal.*)
     *libarch.a:*esp_efuse_fields.*(.text .text.* .literal .literal.*)
     *libarch.a:*esp_efuse_api_key.*(.text .text.* .literal .literal.*)
+    *libarch.a:*esp_efuse_utility.*(.text .text.* .literal .literal.*)
     *libarch.a:*efuse_hal.*(.text .text.* .literal .literal.*)
     *libarch.a:*log.*(.text .text.* .literal .literal.*)
     *libarch.a:*log_noos.*(.text .text.* .literal .literal.*)
@@ -272,6 +275,7 @@ SECTIONS
     *libarch.a:*esp_rom_spiflash.*(.rodata .rodata.*)
     *libarch.a:*esp_efuse_fields.*(.rodata .rodata.*)
     *libarch.a:*esp_efuse_api_key.*(.rodata .rodata.*)
+    *libarch.a:*esp_efuse_utility.*(.rodata .rodata.*)
     *libarch.a:*efuse_hal.*(.rodata .rodata.*)
     *libarch.a:*log.*(.rodata .rodata.*)
     *libarch.a:*log_noos.*(.rodata .rodata.*)

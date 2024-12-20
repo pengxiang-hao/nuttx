@@ -1,6 +1,8 @@
 # ##############################################################################
 # arch/risc-v/src/cmake/Toolchain.cmake
 #
+# SPDX-License-Identifier: Apache-2.0
+#
 # Licensed to the Apache Software Foundation (ASF) under one or more contributor
 # license agreements.  See the NOTICE file distributed with this work for
 # additional information regarding copyright ownership.  The ASF licenses this
@@ -110,6 +112,14 @@ endif()
 
 set(NO_LTO "-fno-lto")
 
+# override the responsible file flag
+
+if(CMAKE_GENERATOR MATCHES "Ninja")
+  set(CMAKE_C_RESPONSE_FILE_FLAG "$DEFINES $INCLUDES $FLAGS @")
+  set(CMAKE_CXX_RESPONSE_FILE_FLAG "$DEFINES $INCLUDES $FLAGS @")
+  set(CMAKE_ASM_RESPONSE_FILE_FLAG "$DEFINES $INCLUDES $FLAGS @")
+endif()
+
 # override the ARCHIVE command
 set(CMAKE_ARCHIVE_COMMAND "<CMAKE_AR> rcs <TARGET> <LINK_FLAGS> <OBJECTS>")
 set(CMAKE_RANLIB_COMMAND "<CMAKE_RANLIB> <TARGET>")
@@ -159,8 +169,8 @@ if(${CONFIG_STACK_USAGE_WARNING})
   endif()
 endif()
 
-if(CONFIG_SCHED_GCOV_ALL)
-  add_compile_options(-fprofile-generate -ftest-coverage)
+if(CONFIG_COVERAGE_ALL)
+  add_compile_options(-fprofile-arcs -ftest-coverage -fno-inline)
 endif()
 
 add_compile_options(
@@ -265,6 +275,12 @@ if(CONFIG_RISCV_TOOLCHAIN STREQUAL GNU_RVG)
     string(REGEX MATCH "([0-9]+)\\.[0-9]+" GCC_VERSION_REGEX
                  "${GCC_VERSION_OUTPUT}")
     set(GCCVER ${CMAKE_MATCH_1})
+
+    if(GCCVER GREATER_EQUAL 12)
+      if(CONFIG_ARCH_RAMFUNCS OR NOT CONFIG_BOOT_RUNFROMFLASH)
+        add_link_options(-Wl,--no-warn-rwx-segments)
+      endif()
+    endif()
   endif()
 
   if(CONFIG_ARCH_RV_ISA_ZICSR_ZIFENCEI)

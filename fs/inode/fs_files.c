@@ -1,6 +1,8 @@
 /****************************************************************************
  * fs/inode/fs_files.c
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -42,6 +44,7 @@
 #include <nuttx/sched.h>
 #include <nuttx/spawn.h>
 #include <nuttx/spinlock.h>
+#include <nuttx/lib/lib.h>
 
 #ifdef CONFIG_FDSAN
 #  include <android/fdsan.h>
@@ -69,9 +72,10 @@ static FAR struct file *files_fget_by_index(FAR struct filelist *list,
   FAR struct file *filep;
   irqstate_t flags;
 
-  flags = spin_lock_irqsave(NULL);
-
+  flags = spin_lock_irqsave(&list->fl_lock);
   filep = &list->fl_files[l1][l2];
+  spin_unlock_irqrestore(&list->fl_lock, flags);
+
 #ifdef CONFIG_FS_REFCOUNT
   if (filep->f_inode != NULL)
     {
@@ -79,28 +83,27 @@ static FAR struct file *files_fget_by_index(FAR struct filelist *list,
        * released, At this point we should return a null pointer
        */
 
-      if (filep->f_refs == 0)
+      int32_t refs = atomic_read(&filep->f_refs);
+      do
         {
-          filep = NULL;
+          if (refs == 0)
+            {
+              filep = NULL;
+              break;
+            }
         }
-      else
-        {
-          filep->f_refs++;
-        }
+      while (!atomic_try_cmpxchg(&filep->f_refs, &refs, refs + 1));
     }
   else if (new == NULL)
     {
       filep = NULL;
     }
-  else if (filep->f_refs)
+  else if (atomic_fetch_add(&filep->f_refs, 1) == 0)
     {
-      filep->f_refs++;
-    }
-  else
-    {
-      filep->f_refs = 2;
+      atomic_fetch_add(&filep->f_refs, 1);
       *new = true;
     }
+
 #else
   if (filep->f_inode == NULL && new == NULL)
     {
@@ -108,7 +111,6 @@ static FAR struct file *files_fget_by_index(FAR struct filelist *list,
     }
 #endif
 
-  spin_unlock_irqrestore(NULL, flags);
   return filep;
 }
 
@@ -162,7 +164,7 @@ static int files_extend(FAR struct filelist *list, size_t row)
     }
   while (++i < row);
 
-  flags = spin_lock_irqsave(NULL);
+  flags = spin_lock_irqsave(&list->fl_lock);
 
   /* To avoid race condition, if the file list is updated by other threads
    * and list rows is greater or equal than temp list,
@@ -171,7 +173,7 @@ static int files_extend(FAR struct filelist *list, size_t row)
 
   if (orig_rows != list->fl_rows && list->fl_rows >= row)
     {
-      spin_unlock_irqrestore(NULL, flags);
+      spin_unlock_irqrestore(&list->fl_lock, flags);
 
       for (j = orig_rows; j < i; j++)
         {
@@ -193,7 +195,7 @@ static int files_extend(FAR struct filelist *list, size_t row)
   list->fl_files = files;
   list->fl_rows = row;
 
-  spin_unlock_irqrestore(NULL, flags);
+  spin_unlock_irqrestore(&list->fl_lock, flags);
 
   if (tmp != NULL && tmp != &list->fl_prefile)
     {
@@ -205,32 +207,43 @@ static int files_extend(FAR struct filelist *list, size_t row)
 
 static void task_fssync(FAR struct tcb_s *tcb, FAR void *arg)
 {
-  FAR struct filelist *list;
+  FAR struct tcb_s *ctcb;
+  FAR struct file *filep;
+  int pid = tcb->pid;
+  uint8_t rows;
   int i;
   int j;
 
-  list = files_getlist(tcb);
-  if (list == NULL)
+  if (tcb->group == NULL)
     {
       return;
     }
 
-  for (i = 0; i < list->fl_rows; i++)
+  rows = tcb->group->tg_filelist.fl_rows;
+
+  for (i = 0; i < rows; i++)
     {
       for (j = 0; j < CONFIG_NFILE_DESCRIPTORS_PER_BLOCK; j++)
         {
-          FAR struct file *filep;
+          ctcb = nxsched_get_tcb(pid);
+          if (ctcb == NULL || ctcb->group == NULL || ctcb != tcb)
+            {
+              return;
+            }
 
-          filep = files_fget_by_index(list, i, j, NULL);
+          filep = files_fget_by_index(&ctcb->group->tg_filelist,
+                                      i, j, NULL);
           if (filep != NULL)
             {
               file_fsync(filep);
-              fs_putfilep(filep);
+              ctcb = nxsched_get_tcb(pid);
+              if (ctcb != NULL && ctcb->group != NULL && ctcb == tcb)
+                {
+                  fs_putfilep(filep);
+                }
             }
         }
     }
-
-  files_putlist(list);
 }
 
 /****************************************************************************
@@ -365,9 +378,9 @@ void files_initlist(FAR struct filelist *list)
    */
 
   list->fl_rows = 1;
-  list->fl_crefs = 1;
   list->fl_files = &list->fl_prefile;
   list->fl_prefile = list->fl_prefiles;
+  spin_lock_init(&list->fl_lock);
 }
 
 /****************************************************************************
@@ -381,6 +394,7 @@ void files_initlist(FAR struct filelist *list)
 #ifdef CONFIG_SCHED_DUMP_ON_EXIT
 void files_dumplist(FAR struct filelist *list)
 {
+  FAR char *path;
   int count = files_countlist(list);
   int i;
 
@@ -392,10 +406,15 @@ void files_dumplist(FAR struct filelist *list)
         "PID", "FD", "FLAGS", "TYPE", "POS", "PATH"
         );
 
+  path = lib_get_pathbuffer();
+  if (path == NULL)
+    {
+      return;
+    }
+
   for (i = 0; i < count; i++)
     {
       FAR struct file *filep = files_fget(list, i);
-      char path[PATH_MAX];
 
 #if CONFIG_FS_BACKTRACE > 0
       char buf[BACKTRACE_BUFFER_SIZE(CONFIG_FS_BACKTRACE)];
@@ -431,36 +450,10 @@ void files_dumplist(FAR struct filelist *list)
             );
       fs_putfilep(filep);
     }
+
+  lib_put_pathbuffer(path);
 }
 #endif
-
-/****************************************************************************
- * Name: files_getlist
- *
- * Description:
- *   Get the list of files by tcb.
- *
- * Assumptions:
- *   Called during task deletion in a safe context.
- *
- ****************************************************************************/
-
-FAR struct filelist *files_getlist(FAR struct tcb_s *tcb)
-{
-  FAR struct filelist *list;
-
-  if (tcb->group != NULL)
-    {
-      list = &tcb->group->tg_filelist;
-      if (list->fl_crefs > 0)
-        {
-          list->fl_crefs++;
-          return list;
-        }
-    }
-
-  return NULL;
-}
 
 /****************************************************************************
  * Name: files_putlist
@@ -477,12 +470,6 @@ void files_putlist(FAR struct filelist *list)
 {
   int i;
   int j;
-
-  DEBUGASSERT(list->fl_crefs >= 1);
-  if (--list->fl_crefs > 0)
-    {
-      return;
-    }
 
   /* Close each file descriptor .. Normally, you would need take the list
    * mutex, but it is safe to ignore the mutex in this context
@@ -578,13 +565,13 @@ int file_allocate_from_tcb(FAR struct tcb_s *tcb, FAR struct inode *inode,
 
   /* Find free file */
 
-  flags = spin_lock_irqsave(NULL);
+  flags = spin_lock_irqsave(&list->fl_lock);
 
   for (; ; i++, j = 0)
     {
       if (i >= list->fl_rows)
         {
-          spin_unlock_irqrestore(NULL, flags);
+          spin_unlock_irqrestore(&list->fl_lock, flags);
 
           ret = files_extend(list, i + 1);
           if (ret < 0)
@@ -592,7 +579,7 @@ int file_allocate_from_tcb(FAR struct tcb_s *tcb, FAR struct inode *inode,
               return ret;
             }
 
-          flags = spin_lock_irqsave(NULL);
+          flags = spin_lock_irqsave(&list->fl_lock);
         }
 
       do
@@ -605,7 +592,7 @@ int file_allocate_from_tcb(FAR struct tcb_s *tcb, FAR struct inode *inode,
               filep->f_inode       = inode;
               filep->f_priv        = priv;
 #ifdef CONFIG_FS_REFCOUNT
-              filep->f_refs        = 1;
+              atomic_set(&filep->f_refs, 1);
 #endif
 #ifdef CONFIG_FDSAN
               filep->f_tag_fdsan   = 0;
@@ -621,7 +608,7 @@ int file_allocate_from_tcb(FAR struct tcb_s *tcb, FAR struct inode *inode,
     }
 
 found:
-  spin_unlock_irqrestore(NULL, flags);
+  spin_unlock_irqrestore(&list->fl_lock, flags);
 
   if (addref)
     {
@@ -835,12 +822,8 @@ void fs_reffilep(FAR struct file *filep)
 {
   /* This interface is used to increase the reference count of filep */
 
-  irqstate_t flags;
-
   DEBUGASSERT(filep);
-  flags = spin_lock_irqsave(NULL);
-  filep->f_refs++;
-  spin_unlock_irqrestore(NULL, flags);
+  atomic_fetch_add(&filep->f_refs, 1);
 }
 
 /****************************************************************************
@@ -857,20 +840,13 @@ void fs_reffilep(FAR struct file *filep)
 
 int fs_putfilep(FAR struct file *filep)
 {
-  irqstate_t flags;
   int ret = 0;
-  int refs;
 
   DEBUGASSERT(filep);
-  flags = spin_lock_irqsave(NULL);
-
-  refs = --filep->f_refs;
-
-  spin_unlock_irqrestore(NULL, flags);
 
   /* If refs is zero, the close() had called, closing it now. */
 
-  if (refs == 0)
+  if (atomic_fetch_sub(&filep->f_refs, 1) == 1)
     {
       ret = file_close(filep);
       if (ret < 0)

@@ -605,7 +605,7 @@ static void mm_delayfree(FAR struct mm_heap_s *heap, FAR void *mem,
   if (delay)
 #endif
     {
-      memset(mem, MM_FREE_MAGIC, nodesize);
+      memset(mem, MM_FREE_MAGIC, size);
     }
 #endif
 
@@ -681,7 +681,7 @@ void mm_addregion(FAR struct mm_heap_s *heap, FAR void *heapstart,
 #ifdef CONFIG_MM_FILL_ALLOCATIONS
   /* Use the fill value to mark uninitialized user memory */
 
-  memset(heapstart, 0xcc, heapsize);
+  memset(heapstart, MM_INIT_MAGIC, heapsize);
 #endif
 
   /* Register to KASan for access check */
@@ -1362,7 +1362,7 @@ FAR void *mm_malloc(FAR struct mm_heap_s *heap, size_t size)
       ret = kasan_unpoison(ret, nodesize);
 
 #ifdef CONFIG_MM_FILL_ALLOCATIONS
-      memset(ret, 0xaa, nodesize);
+      memset(ret, MM_ALLOC_MAGIC, nodesize);
 #endif
     }
 
@@ -1486,8 +1486,10 @@ FAR void *mm_realloc(FAR struct mm_heap_s *heap, FAR void *oldmem,
                      size_t size)
 {
   FAR void *newmem;
+#ifndef CONFIG_MM_KASAN
   size_t oldsize;
   size_t newsize;
+#endif
 
   /* If oldmem is NULL, then realloc is equivalent to malloc */
 

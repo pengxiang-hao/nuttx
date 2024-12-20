@@ -278,7 +278,7 @@ Bluetooth        No
 CAN/TWAI         Yes
 DMA              Yes
 ECC              No
-eFuse            No
+eFuse            Yes
 GPIO             Yes
 HMAC             No
 I2C              Yes
@@ -287,7 +287,7 @@ Int. Temp.       No
 LED              No
 LED_PWM          Yes
 MCPWM            Yes
-Pulse Counter    No
+Pulse Counter    Yes
 RMT              No
 RNG              No
 RSA              No

@@ -76,6 +76,8 @@ jobs:
             echo 'arch_contains_sim=1' | tee -a $GITHUB_OUTPUT
           elif [[ "$labels" == *"Arch: x86_64"* ]]; then
             echo 'arch_contains_x86_64=1' | tee -a $GITHUB_OUTPUT
+          elif [[ "$labels" == *"Arch: x86"* ]]; then
+            echo 'arch_contains_x86=1' | tee -a $GITHUB_OUTPUT
           elif [[ "$labels" == *"Arch: xtensa"* ]]; then
             echo 'arch_contains_xtensa=1' | tee -a $GITHUB_OUTPUT
           fi
@@ -91,6 +93,8 @@ jobs:
             echo 'board_contains_sim=1' | tee -a $GITHUB_OUTPUT
           elif [[ "$labels" == *"Board: x86_64"* ]]; then
             echo 'board_contains_x86_64=1' | tee -a $GITHUB_OUTPUT
+          elif [[ "$labels" == *"Board: x86"* ]]; then
+            echo 'board_contains_x86=1' | tee -a $GITHUB_OUTPUT
           elif [[ "$labels" == *"Board: xtensa"* ]]; then
             echo 'board_contains_xtensa=1' | tee -a $GITHUB_OUTPUT
           fi
@@ -103,9 +107,9 @@ jobs:
         id: select-builds
         run: |
 
-          # Skip all macOS and Windows Builds
-          if [[ "${{ inputs.os }}" != "Linux" ]]; then
-            echo "Skipping all macOS and Windows Builds"
+          # Skip all macOS Builds
+          if [[ "${{ inputs.os }}" == "macOS" ]]; then
+            echo "Skipping all macOS Builds"
             echo "skip_all_builds=1" | tee -a $GITHUB_OUTPUT
             exit
           fi
@@ -119,12 +123,14 @@ jobs:
           arch_contains_arm64=${{ steps.get-arch.outputs.arch_contains_arm64 }}
           arch_contains_riscv=${{ steps.get-arch.outputs.arch_contains_riscv }}
           arch_contains_sim=${{ steps.get-arch.outputs.arch_contains_sim }}
+          arch_contains_x86=${{ steps.get-arch.outputs.arch_contains_x86 }}
           arch_contains_x86_64=${{ steps.get-arch.outputs.arch_contains_x86_64 }}
           arch_contains_xtensa=${{ steps.get-arch.outputs.arch_contains_xtensa }}
           board_contains_arm=${{ steps.get-arch.outputs.board_contains_arm }}
           board_contains_arm64=${{ steps.get-arch.outputs.board_contains_arm64 }}
           board_contains_riscv=${{ steps.get-arch.outputs.board_contains_riscv }}
           board_contains_sim=${{ steps.get-arch.outputs.board_contains_sim }}
+          board_contains_x86=${{ steps.get-arch.outputs.board_contains_x86 }}
           board_contains_x86_64=${{ steps.get-arch.outputs.board_contains_x86_64 }}
           board_contains_xtensa=${{ steps.get-arch.outputs.board_contains_xtensa }}
 
@@ -151,6 +157,7 @@ jobs:
               "$arch_contains_arm64" != "$board_contains_arm64" ||
               "$arch_contains_riscv" != "$board_contains_riscv" ||
               "$arch_contains_sim" != "$board_contains_sim" ||
+              "$arch_contains_x86" != "$board_contains_x86" ||
               "$arch_contains_x86_64" != "$board_contains_x86_64" ||
               "$arch_contains_xtensa" != "$board_contains_xtensa"
             ]]; then
@@ -169,13 +176,13 @@ jobs:
             # If PR was Created or Modified: Exclude some boards
             pr=${{github.event.pull_request.number}}
             if [[ "$pr" != "" ]]; then
-              echo "Excluding arm-0[248], arm-1[02-9], risc-v-04..06, sim-03, xtensa-02"
+              echo "Excluding arm-0[1249], arm-1[124-9], risc-v-04..06, sim-03, xtensa-02"
               boards=$(
                 echo '${{ inputs.boards }}' |
                 jq --compact-output \
                 'map(
                   select(
-                    test("arm-0[248]") == false and test("arm-1[02-9]") == false and
+                    test("arm-0[1249]") == false and test("arm-1[124-9]") == false and
                     test("risc-v-0[4-9]") == false and
                     test("sim-0[3-9]") == false and
                     test("xtensa-0[2-9]") == false
@@ -218,6 +225,12 @@ jobs:
                 skip_build=1
               fi
 
+            # For "Arch / Board: x86": Build other
+            elif [[ "$arch_contains_x86" == "1" || "$board_contains_x86" == "1" ]]; then
+              if [[ "$board" != *"other"* ]]; then
+                skip_build=1
+              fi
+  
             # For "Arch / Board: x86_64": Build x86_64-01
             elif [[ "$arch_contains_x86_64" == "1" || "$board_contains_x86_64" == "1" ]]; then
               if [[ "$board" != *"x86_64-"* ]]; then

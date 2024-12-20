@@ -1,6 +1,8 @@
 /****************************************************************************
  * drivers/virtio/virtio-net.c
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -686,7 +688,7 @@ static int virtio_net_probe(FAR struct virtio_device *vdev)
 
 #endif
 
-  /* Register the net deivce */
+  /* Register the net device */
 
   ret = netdev_lower_register(netdev,
 #ifdef CONFIG_DRIVERS_WIFI_SIM

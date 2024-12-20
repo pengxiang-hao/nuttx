@@ -1,6 +1,8 @@
 /****************************************************************************
  * arch/arm64/src/common/arm64_vectors.S
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -190,6 +192,7 @@ reserved_syscall:
     mov    sp, x0
     b      arm64_exit_exception
 2:
+    mov    x0, sp
     adrp   x5, arm64_fatal_handler
     add    x5, x5, #:lo12:arm64_fatal_handler
     br     x5

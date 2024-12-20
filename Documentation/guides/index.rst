@@ -45,6 +45,7 @@ Guides
   kernel_threads_with_custom_stacks.rst
   versioning_and_task_names.rst
   logging_rambuffer.rst
+  mte.rst
   ipv6.rst
   integrate_newlib.rst
   protected_build.rst
@@ -55,3 +56,4 @@ Guides
   signal_events_interrupt_handlers.rst  
   signaling_sem_priority_inheritance.rst
   smaller_vector_tables.rst
+  port.rst

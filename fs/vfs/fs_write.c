@@ -1,6 +1,8 @@
 /****************************************************************************
  * fs/vfs/fs_write.c
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -68,35 +70,36 @@ static ssize_t file_writev_compat(FAR struct file *filep,
     {
       /* Ignore zero-length writes */
 
-      if (iov[i].iov_len > 0)
+      if (iov[i].iov_len == 0)
         {
-          buffer    = iov[i].iov_base;
-          remaining = iov[i].iov_len;
-
-          /* Write repeatedly as necessary to write the entire buffer */
-
-          do
-            {
-              nwritten = inode->u.i_ops->write(filep, (void *)buffer,
-                                                      remaining);
-
-              /* Check for a write error */
-
-              if (nwritten < 0)
-                {
-                  return ntotal ? ntotal : nwritten;
-                }
-
-              /* Update pointers and counts in order to handle partial
-               * buffer writes.
-               */
-
-              buffer    += nwritten;
-              remaining -= nwritten;
-              ntotal    += nwritten;
-            }
-          while (remaining > 0);
+          continue;
         }
+
+      buffer    = iov[i].iov_base;
+      remaining = iov[i].iov_len;
+
+      nwritten = inode->u.i_ops->write(filep, (void *)buffer, remaining);
+
+      /* Check for a write error */
+
+      if (nwritten < 0)
+        {
+          return ntotal ? ntotal : nwritten;
+        }
+
+      ntotal += nwritten;
+
+      /* Check for a parital success condition */
+
+      if (nwritten < remaining)
+        {
+          return ntotal;
+        }
+
+      /* Update the pointer */
+
+      buffer    += nwritten;
+      remaining -= nwritten;
     }
 
   return ntotal;
@@ -246,7 +249,7 @@ ssize_t nx_writev(int fd, FAR const struct iovec *iov, int iovcnt)
   if (ret >= 0)
     {
       /* Perform the write operation using the file descriptor as an
-       * index.  Note that file_write() will return the errno on failure.
+       * index.  Note that file_writev() will return the errno on failure.
        */
 
       uio.uio_iov = iov;
@@ -348,7 +351,7 @@ ssize_t writev(int fd, FAR const struct iovec *iov, int iovcnt)
 
   enter_cancellation_point();
 
-  /* Let nx_write() do all of the work */
+  /* Let nx_writev() do all of the work */
 
   ret = nx_writev(fd, iov, iovcnt);
   if (ret < 0)

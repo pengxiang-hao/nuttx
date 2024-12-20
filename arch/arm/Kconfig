@@ -17,24 +17,24 @@ config ARM_TOOLCHAIN_IAR
 config ARM_TOOLCHAIN_BUILDROOT
 	bool "Buildroot (Cygwin or Linux)"
 	depends on !WINDOWS_NATIVE
-	select ARCH_TOOLCHAIN_GNU
+	select ARCH_TOOLCHAIN_GCC
 
 config ARM_TOOLCHAIN_BUILDROOT_OABI
 	bool "OABI (vs EABI)"
 	depends on !WINDOWS_NATIVE
-	select ARCH_TOOLCHAIN_GNU
+	select ARCH_TOOLCHAIN_GCC
 	---help---
 		Most of the older buildroot toolchains are OABI
 
 config ARM_TOOLCHAIN_GNU_EABI
 	bool "Generic GNU EABI toolchain"
-	select ARCH_TOOLCHAIN_GNU
+	select ARCH_TOOLCHAIN_GCC
 	---help---
 		This option should work for any modern GNU toolchain (GCC 4.5 or newer)
 
 config ARM_TOOLCHAIN_GNU_OABI
 	bool "Generic GNU OABI toolchain"
-	select ARCH_TOOLCHAIN_GNU
+	select ARCH_TOOLCHAIN_GCC
 	---help---
 		This option should work for any GNU toolchain.
 
@@ -90,7 +90,8 @@ config ARCH_CHIP_FVP_ARMV8R_AARCH32
 	select ARCH_CORTEXR52
 	select ARCH_HAVE_LOWVECTORS
 	select ARCH_HAVE_FETCHADD
-	select ARMV8R_HAVE_DECODEFIQ
+	select ARCH_HAVE_IRQPRIO
+	select ARCH_HAVE_HIPRI_INTERRUPT
 	select ARCH_HAVE_FPU
 	---help---
 		ARM FVP virt platform (ARMv8r)
@@ -182,6 +183,20 @@ config ARCH_CHIP_IMX6
 	---help---
 		Freescale iMX.6 architectures (Cortex-A9)
 
+config ARCH_CHIP_IMX9_CORTEX_M
+	bool "NXP iMX.9 Cortex-M7"
+	select ARCH_CORTEXM7
+	select ARCH_HAVE_MPU
+	select ARCH_HAVE_FETCHADD
+	select ARCH_HAVE_RAMFUNCS
+	select ARCH_HAVE_TICKLESS
+	select ARCH_HAVE_I2CRESET
+	select ARCH_HAVE_SPI_CS_CONTROL
+	select ARM_HAVE_MPU_UNIFIED
+	select ARMV7M_HAVE_STACKCHECK
+	---help---
+		iMX.9 architectures (Cortex-M7)
+
 config ARCH_CHIP_IMXRT
 	bool "NXP/Freescale iMX.RT"
 	select ARCH_CORTEXM7
@@ -221,7 +236,7 @@ config ARCH_CHIP_LC823450
 	select ARCH_HAVE_HEAPCHECK
 	select ARCH_HAVE_MULTICPU
 	select ARCH_HAVE_I2CRESET
-	select ARCH_HAVE_CUSTOM_VECTORS
+	select ARCH_HAVE_CUSTOM_TESTSET
 	---help---
 		ON Semiconductor LC823450 architectures (ARM dual Cortex-M3)
 
@@ -344,14 +359,26 @@ config ARCH_CHIP_RP2040
 	select ARCH_CORTEXM0
 	select ARCH_HAVE_RAMVECTORS
 	select ARCH_HAVE_MULTICPU
-	select ARCH_HAVE_TESTSET
 	select ARCH_HAVE_I2CRESET
 	select ARM_HAVE_WFE_SEV
 	select ARCH_HAVE_PWM_MULTICHAN
 	select ARCH_BOARD_COMMON
-	select ARCH_HAVE_CUSTOM_VECTORS
+	select ARCH_HAVE_CUSTOM_TESTSET
 	---help---
 		Raspberry Pi RP2040 architectures (ARM dual Cortex-M0+).
+
+config ARCH_CHIP_RP23XX
+	bool "Raspberry Pi RP23XX"
+	select ARCH_CORTEXM33
+	select ARCH_HAVE_RAMVECTORS
+	select ARCH_HAVE_MULTICPU
+	select ARCH_HAVE_I2CRESET
+	select ARM_HAVE_WFE_SEV
+	select ARCH_HAVE_CUSTOM_TESTSET
+	select ARCH_HAVE_PWM_MULTICHAN
+	select ARCH_BOARD_COMMON
+	---help---
+		Raspberry Pi RP23XX architectures (ARM dual Cortex-M33 or RISC-V).
 
 config ARCH_CHIP_S32K1XX
 	bool "NXP S32K1XX"
@@ -524,6 +551,22 @@ config ARCH_CHIP_STM32L4
 	---help---
 		STMicro STM32 architectures (ARM Cortex-M4).
 
+config ARCH_CHIP_STM32H5
+	bool "STMicro STM32 H5"
+	select ARCH_CORTEXM33
+	select ARCH_HAVE_MPU
+	select ARM_HAVE_DSP
+	select ARCH_HAVE_FETCHADD
+	select ARCH_HAVE_HEAPCHECK
+	select ARCH_HAVE_PROGMEM
+	select ARCH_HAVE_SPI_BITORDER
+	select ARCH_HAVE_TICKLESS
+	select ARCH_HAVE_TRUSTZONE
+	select ARM_HAVE_MPU_UNIFIED
+	select ARMV8M_HAVE_STACKCHECK
+	---help---
+		STMicro STM32 H5 architectures (ARM Cortex-M33).
+
 config ARCH_CHIP_STM32L5
 	bool "STMicro STM32 L5"
 	select ARCH_CORTEXM33
@@ -655,7 +698,8 @@ config ARCH_CHIP_CXD56XX
 	select ARCH_HAVE_SDIO if MMCSD
 	select ARCH_HAVE_MATH_H
 	select ARCH_HAVE_I2CRESET
-	select ARCH_HAVE_CUSTOM_VECTORS
+	select ARCH_HAVE_CUSTOM_TESTSET
+	select LIBC_ARCH_ATOMIC if SMP
 	---help---
 		Sony CXD56XX (ARM Cortex-M4) architectures
 
@@ -715,6 +759,7 @@ config ARCH_CHIP_CXD32XX
 	bool "Sony CXD32xx"
 	select ARCH_CORTEXM4
 	select ARCH_HAVE_FPU
+	select LIBC_ARCH_ATOMIC
 	---help---
 		Sony CXD32XX (ARM Cortex-M4) architectures
 
@@ -1093,6 +1138,7 @@ config ARCH_CHIP
 	default "gd32f4"	if ARCH_CHIP_GD32F4
 	default "imx1"		if ARCH_CHIP_IMX1
 	default "imx6"		if ARCH_CHIP_IMX6
+	default "imx9"		if ARCH_CHIP_IMX9_CORTEX_M
 	default "imxrt"		if ARCH_CHIP_IMXRT
 	default "kinetis"	if ARCH_CHIP_KINETIS
 	default "kl"		if ARCH_CHIP_KL
@@ -1111,6 +1157,7 @@ config ARCH_CHIP
 	default "nrf91"		if ARCH_CHIP_NRF91
 	default "nuc1xx"	if ARCH_CHIP_NUC1XX
 	default "rp2040"	if ARCH_CHIP_RP2040
+	default "rp23xx"	if ARCH_CHIP_RP23XX
 	default "s32k1xx"	if ARCH_CHIP_S32K1XX
 	default "s32k3xx"	if ARCH_CHIP_S32K3XX
 	default "sama5"		if ARCH_CHIP_SAMA5
@@ -1123,6 +1170,7 @@ config ARCH_CHIP
 	default "stm32f7"	if ARCH_CHIP_STM32F7
 	default "stm32h7"	if ARCH_CHIP_STM32H7
 	default "stm32l4"	if ARCH_CHIP_STM32L4
+	default "stm32h5"	if ARCH_CHIP_STM32H5
 	default "stm32l5"	if ARCH_CHIP_STM32L5
 	default "stm32u5"	if ARCH_CHIP_STM32U5
 	default "stm32wb"	if ARCH_CHIP_STM32WB
@@ -1503,6 +1551,9 @@ endif
 if ARCH_CHIP_IMX6
 source "arch/arm/src/imx6/Kconfig"
 endif
+if ARCH_CHIP_IMX9_CORTEX_M
+source "arch/arm/src/imx9/Kconfig"
+endif
 if ARCH_CHIP_IMXRT
 source "arch/arm/src/imxrt/Kconfig"
 endif
@@ -1563,6 +1614,9 @@ endif
 if ARCH_CHIP_RP2040
 source "arch/arm/src/rp2040/Kconfig"
 endif
+if ARCH_CHIP_RP23XX
+source "arch/arm/src/rp23xx/Kconfig"
+endif
 if ARCH_CHIP_SAMA5
 source "arch/arm/src/sama5/Kconfig"
 endif
@@ -1592,6 +1646,9 @@ source "arch/arm/src/stm32h7/Kconfig"
 endif
 if ARCH_CHIP_STM32L4
 source "arch/arm/src/stm32l4/Kconfig"
+endif
+if ARCH_CHIP_STM32H5
+source "arch/arm/src/stm32h5/Kconfig"
 endif
 if ARCH_CHIP_STM32L5
 source "arch/arm/src/stm32l5/Kconfig"

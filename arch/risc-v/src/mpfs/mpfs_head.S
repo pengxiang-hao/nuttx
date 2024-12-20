@@ -1,6 +1,8 @@
 /****************************************************************************
  * arch/risc-v/src/mpfs/mpfs_head.S
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -48,6 +50,14 @@ __start:
 
   csrw CSR_MIE, zero
   csrw CSR_MIP, zero
+
+  /* Clear all IPIs (above doesn't clear them) */
+
+  csrr a0, CSR_MHARTID
+  slli t1, a0, 2
+  li   t0, MPFS_CLINT_BASE
+  add  t1, t1, t0
+  sw   zero, 0(t1)
 
   /* Initialize the Machine Trap Vector */
 
@@ -171,6 +181,7 @@ __start:
 
 .continue_boot:
 
+#ifdef CONFIG_MPFS_L2_CLEAR
   /* L2 needs to be zeroed before ECC (error correction) is enabled later. */
 
   la  a4, __l2lim_start
@@ -180,6 +191,7 @@ __start:
   sd   x0, 0(a4)
   add  a4, a4, 8
   blt  a4, a5, .clear_l2lim
+#endif /* CONFIG_MPFS_L2_CLEAR */
 #endif
 
   /* Set stack pointer to the idle thread stack */

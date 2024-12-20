@@ -1,6 +1,8 @@
 /****************************************************************************
  * drivers/virtio/virtio-blk.c
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -114,7 +116,7 @@ begin_packed_struct struct virtio_blk_config_s
 
 struct virtio_blk_priv_s
 {
-  FAR struct virtio_device     *vdev;           /* Virtio deivce */
+  FAR struct virtio_device     *vdev;           /* Virtio device */
   spinlock_t                    lock;           /* Lock */
   uint64_t                      nsectors;       /* Sectore numbers */
   uint32_t                      block_size;     /* Block size */

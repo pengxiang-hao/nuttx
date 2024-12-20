@@ -1,6 +1,8 @@
 /****************************************************************************
  * drivers/misc/rpmsgdev.c
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -418,7 +420,7 @@ static ssize_t rpmsgdev_read(FAR struct file *filep, FAR char *buffer,
     {
       ret = rpmsgdev_send_recv(dev, command, true, &msg.header,
                                sizeof(msg) - 1, &read);
-      if (ret != -EAGAIN || priv->nonblock)
+      if (ret != -EAGAIN || read.iov_len > 0 || priv->nonblock)
         {
           break;
         }
@@ -743,7 +745,7 @@ static int rpmsgdev_poll(FAR struct file *filep, FAR struct pollfd *fds,
  *
  * Parameters:
  *   priv  - The rpmsg-device handle
- *   len   - The got memroy size
+ *   len   - The got memory size
  *
  * Returned Values:
  *   NULL     - failure

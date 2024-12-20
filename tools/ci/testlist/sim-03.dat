@@ -29,6 +29,7 @@ CMake,sim:ostest
 CMake,sim:ostest_oneholder
 CMake,sim:pf_ieee802154
 CMake,sim:pktradio
+CMake,sim:quickjs
 CMake,sim:rc
 CMake,sim:romfs
 CMake,sim:rpproxy
@@ -41,6 +42,7 @@ CMake,sim:smp
 CMake,sim:spiffs
 CMake,sim:tcpblaster
 CMake,sim:tcploop
+CMake,sim:tflm
 CMake,sim:udgram
 CMake,sim:unionfs
 CMake,sim:usbdev

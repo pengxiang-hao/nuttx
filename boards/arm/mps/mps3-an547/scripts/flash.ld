@@ -1,6 +1,8 @@
 /****************************************************************************
  * boards/arm/mps/mps3-an547/scripts/flash.ld
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -57,6 +59,12 @@ SECTIONS
         _einit = ABSOLUTE(.);
     } > flash
 
+    __llvm_prf_names : {
+        __start__llvm_prf_names = .;
+        KEEP (*(__llvm_prf_names))
+        __end__llvm_prf_names = .;
+    } > flash
+
     .ARM.extab : ALIGN(4) {
         *(.ARM.extab*)
     } > flash
@@ -93,6 +101,24 @@ SECTIONS
         *(.gnu.linkonce.d.*)
         CONSTRUCTORS
         . = ALIGN(4);
+    } > sram1 AT > flash
+
+    __llvm_prf_data : {
+        __start__llvm_prf_data = .;
+        KEEP (*(__llvm_prf_data))
+        __end__llvm_prf_data = .;
+    } > sram1 AT > flash
+
+    __llvm_prf_vnds : {
+        __start__llvm_prf_vnds = .;
+        KEEP (*(__llvm_prf_vnds))
+        __end__llvm_prf_vnds = .;
+    } > sram1 AT > flash
+
+    __llvm_prf_cnts : {
+        __start__llvm_prf_cnts = .;
+        KEEP (*(__llvm_prf_cnts))
+        __end__llvm_prf_cnts = .;
         _edata = ABSOLUTE(.);
     } > sram1 AT > flash
 

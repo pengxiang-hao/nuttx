@@ -1,6 +1,8 @@
 /****************************************************************************
  * drivers/timers/arch_alarm.c
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -100,9 +102,9 @@ static void udelay_coarse(useconds_t microseconds)
 static void oneshot_callback(FAR struct oneshot_lowerhalf_s *lower,
                              FAR void *arg)
 {
-  clock_t now;
-  ONESHOT_TICK_CURRENT(g_oneshot_lower, &now);
+  clock_t now = 0;
 
+  ONESHOT_TICK_CURRENT(g_oneshot_lower, &now);
 #ifdef CONFIG_SCHED_TICKLESS
   nxsched_alarm_tick_expiration(now);
 #else
@@ -138,7 +140,7 @@ static void oneshot_callback(FAR struct oneshot_lowerhalf_s *lower,
 void up_alarm_set_lowerhalf(FAR struct oneshot_lowerhalf_s *lower)
 {
 #ifdef CONFIG_SCHED_TICKLESS
-  clock_t ticks;
+  clock_t ticks = 0;
 #endif
 
   g_oneshot_lower = lower;
@@ -185,14 +187,13 @@ void up_alarm_set_lowerhalf(FAR struct oneshot_lowerhalf_s *lower)
  *
  ****************************************************************************/
 
-#ifdef CONFIG_CLOCK_TIMEKEEPING
 void weak_function up_timer_getmask(FAR clock_t *mask)
 {
   *mask = 0;
 
   if (g_oneshot_lower != NULL)
     {
-      clock_t maxticks;
+      clock_t maxticks = 0;
 
       ONESHOT_TICK_MAX_DELAY(g_oneshot_lower, &maxticks);
 
@@ -208,9 +209,7 @@ void weak_function up_timer_getmask(FAR clock_t *mask)
         }
     }
 }
-#endif
 
-#if defined(CONFIG_SCHED_TICKLESS) || defined(CONFIG_CLOCK_TIMEKEEPING)
 int weak_function up_timer_gettick(FAR clock_t *ticks)
 {
   int ret = -EAGAIN;
@@ -234,7 +233,6 @@ int weak_function up_timer_gettime(struct timespec *ts)
 
   return ret;
 }
-#endif
 
 /****************************************************************************
  * Name: up_alarm_cancel
@@ -316,7 +314,7 @@ int weak_function up_alarm_tick_start(clock_t ticks)
 
   if (g_oneshot_lower != NULL)
     {
-      clock_t now;
+      clock_t now = 0;
       clock_t delta;
 
       ONESHOT_TICK_CURRENT(g_oneshot_lower, &now);

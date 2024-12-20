@@ -1,6 +1,8 @@
 /****************************************************************************
  * fs/inode/fs_inoderemove.c
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -134,7 +136,7 @@ int inode_remove(FAR const char *path)
        * to it
        */
 
-      if (atomic_load(&inode->i_crefs))
+      if (atomic_read(&inode->i_crefs))
         {
           return -EBUSY;
         }

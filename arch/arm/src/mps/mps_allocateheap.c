@@ -1,6 +1,8 @@
 /****************************************************************************
  * arch/arm/src/mps/mps_allocateheap.c
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -23,6 +25,8 @@
  ****************************************************************************/
 
 #include <nuttx/config.h>
+#include <nuttx/nuttx.h>
+
 #include <sys/types.h>
 #include <stdint.h>
 #include <assert.h>
@@ -42,8 +46,6 @@
 /****************************************************************************
  * Pre-processor Definitions
  ****************************************************************************/
-
-#define ALIGN_UP(x, a) (((x) + (a) - 1) & ~((a) - 1))
 
 /* Configuration ************************************************************/
 

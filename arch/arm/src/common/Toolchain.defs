@@ -1,6 +1,8 @@
 ############################################################################
 # arch/arm/src/common/Toolchain.defs
 #
+# SPDX-License-Identifier: Apache-2.0
+#
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.  The
@@ -72,7 +74,15 @@ ifneq ($(CONFIG_STACK_USAGE_WARNING),0)
   ARCHOPTIMIZATION += -Wstack-usage=$(CONFIG_STACK_USAGE_WARNING)
 endif
 
-ifeq ($(CONFIG_SCHED_GPROF_ALL),y)
+ifeq ($(CONFIG_COVERAGE_ALL),y)
+  ifeq ($(CONFIG_ARCH_TOOLCHAIN_GCC),y)
+    ARCHOPTIMIZATION += -fprofile-arcs -ftest-coverage -fno-inline
+  else ifeq ($(CONFIG_ARCH_TOOLCHAIN_CLANG),y)
+    ARCHOPTIMIZATION += -fprofile-instr-generate -fcoverage-mapping
+  endif
+endif
+
+ifeq ($(CONFIG_PROFILE_ALL),y)
   ARCHOPTIMIZATION += -pg
 endif
 
@@ -318,6 +328,7 @@ else
       endif
       ifeq ($(shell expr "$(GCCVER)" \>= 12), 1)
         ARCHOPTIMIZATION += --param=min-pagesize=0
+        LDFLAGS += --print-memory-usage
         ifeq ($(CONFIG_ARCH_RAMFUNCS),y)
           LDFLAGS += --no-warn-rwx-segments
         else ifeq ($(CONFIG_BOOT_RUNFROMFLASH),)
@@ -328,8 +339,6 @@ else
   endif
 
   LDFLAGS += --entry=__start
-  LDFLAGS += --print-memory-usage
-
 endif
 
 ifeq ($(CONFIG_ARCH_TOOLCHAIN_CLANG),y)
@@ -503,7 +512,7 @@ ifeq ($(CONFIG_LIBSUPCXX_TOOLCHAIN),y)
   EXTRA_LIBS += $(wildcard $(shell $(CC) $(ARCHCPUFLAGS) --print-file-name=libsupc++.a))
 endif
 
-ifeq ($(CONFIG_SCHED_GCOV),y)
+ifeq ($(CONFIG_COVERAGE_TOOLCHAIN),y)
   EXTRA_LIBS += $(wildcard $(shell $(CC) $(ARCHCPUFLAGS) --print-file-name=libgcov.a))
 endif
 

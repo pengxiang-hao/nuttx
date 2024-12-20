@@ -1,6 +1,8 @@
 /****************************************************************************
  * fs/procfs/fs_procfsmeminfo.c
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -393,7 +395,7 @@ static ssize_t meminfo_read(FAR struct file *filep, FAR char *buffer,
                                    (unsigned long)progmem.fordblks,
                                    (unsigned long)progmem.mxordblk,
                                    (unsigned long)progmem.aordblks,
-                                   (unsigned long)progmem.ordblks
+                                   (unsigned long)progmem.ordblks,
                                    "Prog");
       copysize   = procfs_memcpy(procfile->line, linesize, buffer, buflen,
                                  &offset);

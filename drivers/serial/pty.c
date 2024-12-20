@@ -1,6 +1,8 @@
 /****************************************************************************
  * drivers/serial/pty.c
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -338,7 +340,7 @@ static int pty_close(FAR struct file *filep)
 
   /* Check if the decremented inode reference count would go to zero */
 
-  if (atomic_load(&inode->i_crefs) == 1)
+  if (atomic_read(&inode->i_crefs) == 1)
     {
       /* Did the (single) master just close its reference? */
 

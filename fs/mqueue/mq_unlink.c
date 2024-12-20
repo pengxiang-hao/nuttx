@@ -1,6 +1,8 @@
 /****************************************************************************
  * fs/mqueue/mq_unlink.c
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -56,7 +58,7 @@
 
 static void mq_inode_release(FAR struct inode *inode)
 {
-  if (atomic_load(&inode->i_crefs) <= 1)
+  if (atomic_read(&inode->i_crefs) <= 1)
     {
       FAR struct mqueue_inode_s *msgq = inode->i_private;
 

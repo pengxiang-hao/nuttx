@@ -1,6 +1,8 @@
 ############################################################################
 # drivers/sensors/Make.defs
 #
+# SPDX-License-Identifier: Apache-2.0
+#
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.  The
@@ -170,10 +172,6 @@ ifeq ($(CONFIG_SENSORS_BMI160_UORB),y)
 else
   CSRCS += bmi160.c
 endif
-endif
-
-ifeq ($(CONFIG_SENSORS_BMM150),y)
-  CSRCS += bmm150.c
 endif
 
 ifeq ($(CONFIG_SENSORS_BMP180),y)

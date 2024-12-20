@@ -170,8 +170,10 @@ config SYSLOG_TIMESTAMP_FORMAT
 
 config SYSLOG_TIMESTAMP_FORMAT_MICROSECOND
 	bool "Append microseconds after seconds"
-	default y
-	depends on SYSLOG_TIMESTAMP_FORMAT = "%d/%m/%y %H:%M:%S"
+	default y if SYSLOG_TIMESTAMP_FORMAT = "%d/%m/%y %H:%M:%S"
+	---help---
+		Append microseconds after seconds in syslog timestamp.
+		Suggest SYSLOG_TIMESTAMP_FORMAT end with %S.
 
 config SYSLOG_TIMESTAMP_BUFFER
 	int "Formatted timestamp buffer size"
@@ -389,7 +391,7 @@ config CONSOLE_SYSLOG
 	---help---
 		Use the syslog logging device as a system console. If this feature is
 		enabled (along with DEV_CONSOLE), then all console output will be
-		re-directed to syslog output (syslog_putc). This is useful, for
+		re-directed to syslog output (syslog_write). This is useful, for
 		example, if the only console is a Telnet console.  Then in that case,
 		console output from non-Telnet threads will go to the syslog output.
 

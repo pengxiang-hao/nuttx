@@ -1,6 +1,8 @@
 /****************************************************************************
  * drivers/wireless/bluetooth/bt_slip.c
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -25,12 +27,12 @@
 #include <assert.h>
 #include <debug.h>
 #include <fcntl.h>
-#include <stdatomic.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/param.h>
 #include <sys/types.h>
 
+#include <nuttx/atomic.h>
 #include <nuttx/wqueue.h>
 #include <nuttx/crc16.h>
 #include <nuttx/kmalloc.h>

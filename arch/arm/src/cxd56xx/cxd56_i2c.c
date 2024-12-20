@@ -1,6 +1,8 @@
 /****************************************************************************
  * arch/arm/src/cxd56xx/cxd56_i2c.c
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -665,6 +667,7 @@ static int cxd56_i2c_transfer(struct i2c_master_s *dev,
       if (priv->error != OK)
         {
           ret = priv->error;
+          wostop = 0;
           break;
         }
 

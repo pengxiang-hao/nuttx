@@ -1,6 +1,8 @@
 /****************************************************************************
  * drivers/reset/core.c
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -24,6 +26,7 @@
 
 #include <errno.h>
 #include <debug.h>
+#include <string.h>
 
 #include <nuttx/nuttx.h>
 #include <nuttx/kmalloc.h>
@@ -307,7 +310,7 @@ reset_control_get_internal(FAR struct reset_controller_dev *rcdev,
   rstc->rcdev = rcdev;
   list_add_after(&rcdev->reset_control_head, &rstc->list);
   rstc->id = index;
-  atomic_init(&rstc->refcnt, 1);
+  atomic_set(&rstc->refcnt, 1);
   rstc->acquired = acquired;
   rstc->shared = shared;
 
@@ -428,7 +431,7 @@ reset_controller_get_by_name(FAR const char *name)
  *
  *   Firstly, get a reset controller device from list, and then call
  *   reset_control_get_internal function by index, shared or acquired
- *   parameters retrun a reset control.
+ *   parameters return a reset control.
  *
  * Input Parameters:
  *   name     - The reset controller name
@@ -525,7 +528,7 @@ int reset_control_reset(FAR struct reset_control *rstc)
 
   if (rstc->shared)
     {
-      if (atomic_load(&rstc->deassert_count) != 0)
+      if (atomic_read(&rstc->deassert_count) != 0)
         {
           return -EINVAL;
         }
@@ -595,12 +598,12 @@ int reset_control_assert(FAR struct reset_control *rstc)
 
   if (rstc->shared)
     {
-      if (atomic_load(&rstc->triggered_count) != 0)
+      if (atomic_read(&rstc->triggered_count) != 0)
         {
           return -EINVAL;
         }
 
-      if (atomic_load(&rstc->deassert_count) == 0)
+      if (atomic_read(&rstc->deassert_count) == 0)
         {
           rsterr("deassert_count = 0, invalid value\n");
           return -EINVAL;
@@ -679,7 +682,7 @@ int reset_control_deassert(FAR struct reset_control *rstc)
 
   if (rstc->shared)
     {
-      if (atomic_load(&rstc->triggered_count) != 0)
+      if (atomic_read(&rstc->triggered_count) != 0)
         {
           rsterr("triggered_count != 0, invalid value\n");
           return -EINVAL;

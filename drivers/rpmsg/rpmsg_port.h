@@ -1,6 +1,8 @@
 /****************************************************************************
  * drivers/rpmsg/rpmsg_port.h
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -27,7 +29,7 @@
 
 #include <stdbool.h>
 
-#include <metal/atomic.h>
+#include <nuttx/atomic.h>
 
 #include <nuttx/list.h>
 #include <nuttx/spinlock.h>
@@ -235,7 +237,7 @@ void rpmsg_port_queue_add_buffer(FAR struct rpmsg_port_queue_s *queue,
 static inline_function
 uint16_t rpmsg_port_queue_navail(FAR struct rpmsg_port_queue_s *queue)
 {
-  return atomic_load(&queue->free.num);
+  return atomic_read(&queue->free.num);
 }
 
 /****************************************************************************
@@ -255,7 +257,7 @@ uint16_t rpmsg_port_queue_navail(FAR struct rpmsg_port_queue_s *queue)
 static inline_function
 uint16_t rpmsg_port_queue_nused(FAR struct rpmsg_port_queue_s *queue)
 {
-  return atomic_load(&queue->ready.num);
+  return atomic_read(&queue->ready.num);
 }
 
 /****************************************************************************

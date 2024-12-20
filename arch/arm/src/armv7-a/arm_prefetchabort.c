@@ -1,6 +1,8 @@
 /****************************************************************************
  * arch/arm/src/armv7-a/arm_prefetchabort.c
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -54,14 +56,14 @@
 
 uint32_t *arm_prefetchabort(uint32_t *regs, uint32_t ifar, uint32_t ifsr)
 {
-  uint32_t *savestate;
+  struct tcb_s *tcb = this_task();
+  uint32_t *saveregs;
+  bool savestate;
 
-  /* Save the saved processor context in current_regs where it can be
-   * accessed for register dumps and possibly context switching.
-   */
-
-  savestate = up_current_regs();
-  up_set_current_regs(regs);
+  savestate = up_interrupt_context();
+  saveregs = tcb->xcp.regs;
+  tcb->xcp.regs = regs;
+  up_set_interrupt_context(true);
 
   /* Get the (virtual) address of instruction that caused the prefetch
    * abort. When the exception occurred, this address was provided in the
@@ -100,12 +102,10 @@ uint32_t *arm_prefetchabort(uint32_t *regs, uint32_t ifar, uint32_t ifsr)
 
       pg_miss();
 
-      /* Restore the previous value of current_regs.
-       * NULL would indicate thatwe are no longer in an interrupt handler.
-       *  It will be non-NULL if we are returning from a nested interrupt.
-       */
+      /* Restore the previous value of saveregs. */
 
-      up_set_current_regs(savestate);
+      up_set_interrupt_context(savestate);
+      tcb->xcp.regs = saveregs;
     }
   else
     {
@@ -121,11 +121,10 @@ uint32_t *arm_prefetchabort(uint32_t *regs, uint32_t ifar, uint32_t ifsr)
 
 uint32_t *arm_prefetchabort(uint32_t *regs, uint32_t ifar, uint32_t ifsr)
 {
-  /* Save the saved processor context in current_regs where it can be
-   * accessed for register dumps and possibly context switching.
-   */
+  struct tcb_s *tcb = this_task();
 
-  up_set_current_regs(regs);
+  tcb->xcp.regs = regs;
+  up_set_interrupt_context(true);
 
   /* Crash -- possibly showing diagnostic debug information. */
 

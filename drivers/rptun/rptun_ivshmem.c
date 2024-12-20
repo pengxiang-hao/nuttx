@@ -1,6 +1,8 @@
 /****************************************************************************
  * drivers/rptun/rptun_ivshmem.c
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -394,7 +396,7 @@ static int rptun_ivshmem_probe(FAR struct ivshmem_device_s *ivdev)
   ret = rptun_initialize(&priv->rptun);
   if (ret < 0)
     {
-      pcierr("rptun intialize failed, ret=%d\n", ret);
+      pcierr("rptun initialize failed, ret=%d\n", ret);
       goto err;
     }
 

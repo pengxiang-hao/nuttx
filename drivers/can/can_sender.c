@@ -1,6 +1,8 @@
 /****************************************************************************
  * drivers/can/can_sender.c
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -146,17 +148,6 @@ FAR struct can_msg_s *can_get_msg(FAR struct can_txcache_s *cd_sender)
   list_for_every_entry(&cd_sender->tx_sending, tmp_node,
                        struct can_msg_node_s, list)
     {
-      if (tmp_node->msg.cm_hdr.ch_id == msg->cm_hdr.ch_id)
-        {
-          /* In order to prevent messages with the same ID from being
-           * sent out of order, as long as there is a message with the
-           * same ID that has not been sent in H/W, no data will be
-           * written to H/W
-           */
-
-          return NULL;
-        }
-
       if (tmp_node->msg.cm_hdr.ch_id > msg->cm_hdr.ch_id)
         {
           break;

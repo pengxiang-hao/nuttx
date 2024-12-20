@@ -21,7 +21,6 @@ on:
     paths-ignore:
       - 'Documentation/**'
     branches:
-      - master
       - 'releases/*'
     tags:
 
@@ -87,7 +86,7 @@ jobs:
             esac
           fi
 
-          echo "name=$OS_REF" >> $GITHUB_OUTPUT
+          echo "os_ref=$OS_REF" >> $GITHUB_OUTPUT
           echo "apps_ref=$APPS_REF" >> $GITHUB_OUTPUT
 
       - name: Checkout nuttx repo
@@ -185,6 +184,7 @@ jobs:
             if [ "X${{matrix.boards}}" = "Xcodechecker" ]; then
                 ./cibuild.sh -c -A -N -R --codechecker testlist/${{matrix.boards}}.dat
             else
+                ( sleep 7200 ; echo Killing pytest after timeout... ; pkill -f pytest )&
                 ./cibuild.sh -c -A -N -R -S testlist/${{matrix.boards}}.dat
             fi
 
@@ -284,6 +284,7 @@ jobs:
         with:
           msystem: MSYS
           update: false
+          cache: false
           install: >-
             base-devel
             gcc
@@ -328,7 +329,7 @@ jobs:
           git config --global --add safe.directory /github/workspace/sources/nuttx
           git config --global --add safe.directory /github/workspace/sources/apps
           cd sources/nuttx/tools/ci
-          ./cibuild.sh -g -i -A -C -R testlist/${{matrix.boards}}.dat
+          ./cibuild.sh -g -i -A -C -N -R testlist/${{matrix.boards}}.dat
 
       - uses: actions/upload-artifact@v4
         with:

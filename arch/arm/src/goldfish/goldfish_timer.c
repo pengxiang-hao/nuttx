@@ -1,6 +1,8 @@
 /****************************************************************************
  * arch/arm/src/goldfish/goldfish_timer.c
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -36,7 +38,7 @@
 void up_timer_initialize(void)
 {
 #if defined(CONFIG_GOLDFISH_TIMER) && defined(CONFIG_LIBC_FDT)
-  FAR struct oneshot_lowerhalf_s *lower;
+  struct oneshot_lowerhalf_s *lower;
   const void *fdt = fdt_get();
 
   DEBUGASSERT(fdt != NULL);

@@ -20,15 +20,14 @@
 
 include $(TOPDIR)/Make.defs
 
-ifeq ($(CONFIG_BUILTIN_COMPILER_RT),y)
-include compiler-rt/Make.defs
-endif
-
 BIN ?= libbuiltin$(LIBEXT)
 BINDIR ?= bin
 
 KBIN = libkbuiltin$(LIBEXT)
 KBINDIR = kbin
+
+include compiler-rt/Make.defs
+include libgcc/Make.defs
 
 AOBJS = $(addprefix $(BINDIR)$(DELIM), $(ASRCS:.S=$(OBJEXT)))
 COBJS = $(addprefix $(BINDIR)$(DELIM), $(CSRCS:.c=$(OBJEXT)))
@@ -38,12 +37,8 @@ CPPOBJS = $(addprefix $(BINDIR)$(DELIM), $(CPPSRCS:.cpp=$(OBJEXT)))
 SRCS = $(ASRCS) $(CSRCS) $(CXXSRCS) $(CPPSRCS)
 OBJS = $(AOBJS) $(COBJS) $(CXXOBJS) $(CPPOBJS)
 
-BUILTIN_CLEANDIR = $(foreach dir,$(LIBBUILTIN),$(dir)/$(dir))
-
-all: $(OBJS)
-	$(call ARCHIVE, $(BIN), $(OBJS))
-
-.PHONY: depend clean distclean context $(LIBBUILTIN)
+all: $(BIN)
+.PHONY: depend clean distclean context
 
 $(AOBJS): $(BINDIR)$(DELIM)%$(OBJEXT): %.S
 	$(call ASSEMBLE, $<, $@)
@@ -57,15 +52,21 @@ $(CXXOBJS): $(BINDIR)$(DELIM)%$(OBJEXT): %.cxx
 $(CPPOBJS): $(BINDIR)$(DELIM)%$(OBJEXT): %.cpp
 	$(call COMPILEXX, $<, $@)
 
-context::
+bin:
+	$(Q) mkdir $@
 
-.depend: $(LIBBUILTIN)
+kbin:
+	$(Q) mkdir $@
+
+context:: bin kbin
+
+.depend: Makefile $(SRCS) $(TOPDIR)$(DELIM).config
 	$(Q) touch $@
 
-depend: .depend
+depend:: .depend
 
-$(BIN): depend
-	$(Q) $(MAKE) all EXTRAFLAGS="$(EXTRAFLAGS)"
+$(BIN): $(OBJS)
+	$(call ARCHIVE, $@, $(OBJS))
 
 # C library for the kernel phase of the two-pass kernel build
 
@@ -75,12 +76,11 @@ $(KBIN): $(OBJS)
 endif
 
 clean:
+	$(call CLEAN)
 	$(call DELFILE, $(BIN))
-	$(Q) $(MAKE) -C bin  clean
-	$(Q) $(MAKE) -C kbin clean
+	$(call DELFILE, $(KBIN))
 
-distclean: clean
-	$(Q) $(MAKE) -C bin  distclean
-	$(Q) $(MAKE) -C kbin distclean
-	$(call DELFILE, .depend)
-	$(call DELDIR, $(BUILTIN_CLEANDIR))
+distclean:: clean
+	$(call DELDIR, bin)
+	$(call DELDIR, kbin)
+	$(call DELDIR, .depend)

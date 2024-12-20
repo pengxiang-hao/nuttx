@@ -1,6 +1,8 @@
 # ##############################################################################
 # arch/sim/src/sim/CMakeLists.txt
 #
+# SPDX-License-Identifier: Apache-2.0
+#
 # Licensed to the Apache Software Foundation (ASF) under one or more contributor
 # license agreements.  See the NOTICE file distributed with this work for
 # additional information regarding copyright ownership.  The ASF licenses this
@@ -27,7 +29,7 @@ set(HOSTSRCS)
 set(HOST_INCLUDE_DIRS)
 set(STDLIBS pthread)
 
-if(CONFIG_SCHED_GCOV)
+if(CONFIG_COVERAGE_TOOLCHAIN)
   list(APPEND STDLIBS gcov)
 endif()
 

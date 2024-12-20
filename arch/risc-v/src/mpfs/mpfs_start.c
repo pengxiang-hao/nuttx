@@ -1,6 +1,8 @@
 /****************************************************************************
  * arch/risc-v/src/mpfs/mpfs_start.c
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -121,7 +123,7 @@ void __mpfs_start(uint64_t mhartid)
 
   /* Setup PLL if not already provided */
 
-#ifdef CONFIG_MPFS_BOOTLOADER
+#ifdef CONFIG_MPFS_CLKINIT
   mpfs_clockconfig();
 #endif
 

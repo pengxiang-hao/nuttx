@@ -1,6 +1,8 @@
 ############################################################################
 # arch/x86_64/src/common/Toolchain.defs
 #
+# SPDX-License-Identifier: Apache-2.0
+#
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.  The
@@ -127,6 +129,19 @@ ifeq ($(CONFIG_LIBCXX),y)
   CXXFLAGS += -D_LIBCPP_DISABLE_AVAILABILITY
 endif
 
+ifeq ($(CONFIG_MM_KASAN_ALL),y)
+  ARCHOPTIMIZATION += -fsanitize=kernel-address
+endif
+ifeq ($(CONFIG_MM_KASAN_GLOBAL),y)
+  ARCHOPTIMIZATION += --param asan-globals=1
+endif
+ifeq ($(CONFIG_MM_KASAN_DISABLE_READS_CHECK),y)
+  ARCHOPTIMIZATION += --param asan-instrument-reads=0
+endif
+ifeq ($(CONFIG_MM_KASAN_DISABLE_WRITES_CHECK),y)
+  ARCHOPTIMIZATION += --param asan-instrument-writes=0
+endif
+
 CC = $(CROSSDEV)gcc
 CXX = $(CROSSDEV)g++
 CPP = $(CROSSDEV)gcc -E -x c
@@ -136,6 +151,14 @@ AR = $(CROSSDEV)ar rcs
 NM = $(CROSSDEV)nm
 OBJCOPY = $(CROSSDEV)objcopy
 OBJDUMP = $(CROSSDEV)objdump
+
+ifeq ($(CONFIG_ARCH_TOOLCHAIN_GNU),y)
+  ifeq ($(CONFIG_ARCH_TOOLCHAIN_CLANG),)
+    ifeq ($(GCCVER),)
+      export GCCVER := $(shell $(CC) --version | grep gcc | sed -E "s/.* ([0-9]+\.[0-9]+).*/\1/" | cut -d'.' -f1)
+    endif
+  endif
+endif
 
 ifeq ($(CONFIG_ARCH_X86_64_SSE3),y)
   ARCHCPUFLAGS += -msse3
@@ -220,7 +243,7 @@ LDMODULEFLAGS = -r -T $(call CONVERT_PATH,$(TOPDIR)/libs/libc/modlib/gnu-elf.ld)
 CELFFLAGS = $(CFLAGS) -fvisibility=hidden
 CXXELFFLAGS = $(CXXFLAGS) -fvisibility=hidden
 
-LDELFFLAGS = -r -e main --gc-sections
+LDELFFLAGS = -r -e main
 LDELFFLAGS += -T $(call CONVERT_PATH,$(TOPDIR)$(DELIM)libs$(DELIM)libc$(DELIM)modlib$(DELIM)gnu-elf.ld)
 
 # -fno-pic to avoid GOT relocations

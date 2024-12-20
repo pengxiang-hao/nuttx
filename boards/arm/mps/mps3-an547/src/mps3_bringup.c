@@ -1,6 +1,8 @@
 /****************************************************************************
  * boards/arm/mps/mps3-an547/src/mps3_bringup.c
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -103,7 +105,7 @@ static int mps3_bringup(void)
 
 #ifdef CONFIG_BOARDCTL_BOOT_IMAGE
 
-int board_boot_image(FAR const char *path, uint32_t hdr_size)
+int board_boot_image(const char *path, uint32_t hdr_size)
 {
   struct mod_loadinfo_s loadinfo;
   struct module_s mod;

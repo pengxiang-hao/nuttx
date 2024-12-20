@@ -1,6 +1,8 @@
 /****************************************************************************
  * drivers/mtd/rpmsgmtd.c
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -665,7 +667,7 @@ static int rpmsgmtd_ioctl(FAR struct mtd_dev_s *dev, int cmd,
  *
  * Parameters:
  *   priv  - The rpmsg-mtd handle
- *   len   - The got memroy size
+ *   len   - The got memory size
  *
  * Returned Values:
  *   NULL     - failure

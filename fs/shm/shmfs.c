@@ -1,6 +1,8 @@
 /****************************************************************************
  * fs/shm/shmfs.c
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -26,12 +28,9 @@
 
 #include <nuttx/fs/ioctl.h>
 #include <nuttx/mm/map.h>
-
-#if defined (CONFIG_BUILD_KERNEL)
 #include <nuttx/arch.h>
 #include <nuttx/pgalloc.h>
 #include <nuttx/sched.h>
-#endif
 
 #include "shm/shmfs.h"
 #include "inode/inode.h"
@@ -187,7 +186,7 @@ static int shmfs_release(FAR struct inode *inode)
    * The inode is released after this call, hence checking if i_crefs <= 1.
    */
 
-  if (inode->i_parent == NULL && atomic_load(&inode->i_crefs) <= 1)
+  if (inode->i_parent == NULL && atomic_read(&inode->i_crefs) <= 1)
     {
       shmfs_free_object(inode->i_private);
       inode->i_private = NULL;
@@ -257,7 +256,7 @@ static int shmfs_truncate(FAR struct file *filep, off_t length)
 #ifndef CONFIG_DISABLE_PSEUDOFS_OPERATIONS
 static int shmfs_unlink(FAR struct inode *inode)
 {
-  if (atomic_load(&inode->i_crefs) <= 1)
+  if (atomic_read(&inode->i_crefs) <= 1)
     {
       shmfs_free_object(inode->i_private);
       inode->i_private = NULL;

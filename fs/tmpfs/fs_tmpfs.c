@@ -1,6 +1,8 @@
 /****************************************************************************
  * fs/tmpfs/fs_tmpfs.c
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -33,6 +35,7 @@
 #include <assert.h>
 #include <debug.h>
 
+#include <nuttx/sched.h>
 #include <nuttx/kmalloc.h>
 #include <nuttx/fs/fs.h>
 #include <nuttx/fs/ioctl.h>
@@ -885,6 +888,14 @@ static int tmpfs_find_object(FAR struct tmpfs_s *fs,
        * This will be NULL is we are working on the final segment of the
        * relpath.
        */
+
+      /* Skip any slash. */
+
+      while (*segment == '/')
+        {
+          segment++;
+          len--;
+        }
 
       next_segment = memchr(segment, '/', len);
       if (next_segment)

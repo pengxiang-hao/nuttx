@@ -1,6 +1,8 @@
 # ##############################################################################
 # arch/arm/src/cxd56xx/CMakeLists.txt
 #
+# SPDX-License-Identifier: Apache-2.0
+#
 # Licensed to the Apache Software Foundation (ASF) under one or more contributor
 # license agreements.  See the NOTICE file distributed with this work for
 # additional information regarding copyright ownership.  The ASF licenses this
@@ -37,8 +39,7 @@ set(SRCS
     cxd56_icc.c
     cxd56_powermgr.c
     cxd56_farapi.c
-    cxd56_sysctl.c
-    cxd56_vectors.c)
+    cxd56_sysctl.c)
 
 if(CONFIG_SMP)
   list(APPEND SRCS cxd56_cpuidlestack.c)

@@ -1,6 +1,8 @@
 /***************************************************************************
  * arch/arm64/src/goldfish/goldfish_rtc.c
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -33,7 +35,7 @@
 
 int up_rtc_initialize(void)
 {
-  FAR struct rtc_lowerhalf_s *rtc_lowerhalf =
+  struct rtc_lowerhalf_s *rtc_lowerhalf =
             pl031_initialize(CONFIG_GOLDFISH_RTC_PL031_BASE,
                              CONFIG_GOLDFISH_RTC_PL031_IRQ);
 

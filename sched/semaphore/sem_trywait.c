@@ -62,9 +62,8 @@
 
 static int nxsem_trywait_slow(FAR sem_t *sem)
 {
-  FAR struct tcb_s *rtcb;
   irqstate_t flags;
-  short semcount;
+  int32_t semcount;
   int ret;
 
   /* The following operations must be performed with interrupts disabled
@@ -72,23 +71,20 @@ static int nxsem_trywait_slow(FAR sem_t *sem)
    */
 
   flags = enter_critical_section();
-  rtcb = this_task();
 
   /* If the semaphore is available, give it to the requesting task */
 
+  semcount = atomic_read(NXSEM_COUNT(sem));
   do
     {
-      semcount = atomic_load(NXSEM_COUNT(sem));
       if (semcount <= 0)
         {
           leave_critical_section(flags);
           return -EAGAIN;
         }
     }
-  while (!atomic_compare_exchange_weak_explicit(NXSEM_COUNT(sem),
-                                                &semcount, semcount - 1,
-                                                memory_order_acquire,
-                                                memory_order_relaxed));
+  while (!atomic_try_cmpxchg_acquire(NXSEM_COUNT(sem),
+                                     &semcount, semcount - 1));
 
   /* It is, let the task take the semaphore */
 
@@ -101,8 +97,6 @@ static int nxsem_trywait_slow(FAR sem_t *sem)
     }
 
   nxsem_add_holder(sem);
-  rtcb->waitobj = NULL;
-  ret = OK;
 
   /* Interrupts may now be enabled. */
 
@@ -153,10 +147,8 @@ int nxsem_trywait(FAR sem_t *sem)
 #if !defined(CONFIG_PRIORITY_INHERITANCE) && !defined(CONFIG_PRIORITY_PROTECT)
   if (sem->flags & SEM_TYPE_MUTEX)
     {
-      short old = 1;
-      if (atomic_compare_exchange_weak_explicit(NXSEM_COUNT(sem), &old, 0,
-                                                memory_order_acquire,
-                                                memory_order_relaxed))
+      int32_t old = 1;
+      if (atomic_try_cmpxchg_acquire(NXSEM_COUNT(sem), &old, 0))
         {
           return OK;
         }

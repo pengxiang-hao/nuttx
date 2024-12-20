@@ -73,7 +73,7 @@ static int nxsem_post_slow(FAR sem_t *sem)
 {
   FAR struct tcb_s *stcb = NULL;
   irqstate_t flags;
-  int16_t sem_count;
+  int32_t sem_count;
 #if defined(CONFIG_PRIORITY_INHERITANCE) || defined(CONFIG_PRIORITY_PROTECT)
   uint8_t proto;
 #endif
@@ -85,16 +85,19 @@ static int nxsem_post_slow(FAR sem_t *sem)
 
   flags = enter_critical_section();
 
-  sem_count = atomic_fetch_add(NXSEM_COUNT(sem), 1);
-
   /* Check the maximum allowable value */
 
-  if (sem_count >= SEM_VALUE_MAX)
+  sem_count = atomic_read(NXSEM_COUNT(sem));
+  do
     {
-      atomic_fetch_sub(NXSEM_COUNT(sem), 1);
-      leave_critical_section(flags);
-      return -EOVERFLOW;
+      if (sem_count >= SEM_VALUE_MAX)
+        {
+          leave_critical_section(flags);
+          return -EOVERFLOW;
+        }
     }
+  while (!atomic_try_cmpxchg_release(NXSEM_COUNT(sem), &sem_count,
+                                     sem_count + 1));
 
   /* Perform the semaphore unlock operation, releasing this task as a
    * holder then also incrementing the count on the semaphore.
@@ -259,10 +262,8 @@ int nxsem_post(FAR sem_t *sem)
 #if !defined(CONFIG_PRIORITY_INHERITANCE) && !defined(CONFIG_PRIORITY_PROTECT)
   if (sem->flags & SEM_TYPE_MUTEX)
     {
-      short old = 0;
-      if (atomic_compare_exchange_weak_explicit(NXSEM_COUNT(sem), &old, 1,
-                                                memory_order_release,
-                                                memory_order_relaxed))
+      int32_t old = 0;
+      if (atomic_try_cmpxchg_release(NXSEM_COUNT(sem), &old, 1))
         {
           return OK;
         }

@@ -1,6 +1,8 @@
 /****************************************************************************
  * arch/x86_64/src/intel64/intel64_cpustart.c
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -165,8 +167,10 @@ void x86_64_ap_boot(void)
 
   irq_attach(SMP_IPI_CALL_IRQ, x86_64_smp_call_handler, NULL);
   irq_attach(SMP_IPI_SCHED_IRQ, x86_64_smp_sched_handler, NULL);
-  up_enable_irq(SMP_IPI_CALL_IRQ);
-  up_enable_irq(SMP_IPI_SCHED_IRQ);
+
+  /* NOTE: IPC interrupts don't use IOAPIC but interrupts are sent
+   * directly to CPU, so we don't use up_enable_irq() API here.
+   */
 
 #ifdef CONFIG_STACK_COLORATION
   /* If stack debug is enabled, then fill the stack with a

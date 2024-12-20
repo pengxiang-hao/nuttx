@@ -87,7 +87,7 @@ find_program(KCONFIGLIB olddefconfig)
 if(NOT KCONFIGLIB)
   message(
     FATAL_ERROR "Kconfig environment depends on kconfiglib, Please install:
-  $ pip install kconfiglib")
+  $ sudo apt install python3-kconfiglib")
 endif()
 
 # BOARD CONFIG can be set to directory path, or <board-name>[/:]<config-name>
@@ -337,13 +337,19 @@ if(NOT EXISTS ${CMAKE_BINARY_DIR}/.config OR NOT "${NUTTX_DEFCONFIG}" STREQUAL
       CACHE INTERNAL "Saved defconfig path" FORCE)
 
   # Print configuration choices
-  message(STATUS "  CMake   ${CMAKE_VERSION}")
+  message(STATUS "  CMake:  ${CMAKE_VERSION}")
   if(CMAKE_GENERATOR MATCHES "Ninja")
     execute_process(
       COMMAND ninja --version
       OUTPUT_VARIABLE ninja_version
       OUTPUT_STRIP_TRAILING_WHITESPACE)
-    message(STATUS "  Ninja   ${ninja_version}")
+    message(STATUS "  Ninja:  ${ninja_version}")
+
+    # Ninja generator does not yet know how to build archives in pieces, so
+    # response files must be used to deal with very long linker command lines.
+    set(CMAKE_NINJA_FORCE_RESPONSE_FILE
+        1
+        CACHE INTERNAL "")
   endif()
   message(STATUS "  Board:  ${NUTTX_BOARD}")
   message(STATUS "  Config: ${NUTTX_CONFIG}")
@@ -359,6 +365,10 @@ nuttx_export_kconfig(${CMAKE_BINARY_DIR}/.config)
 include(nuttx_generate_headers)
 include(nuttx_generate_outputs)
 include(nuttx_add_library)
+
+# add NuttX CMake extenstion after nuttx_add_library
+include(nuttx_extensions)
+
 include(nuttx_add_application)
 include(nuttx_add_romfs)
 include(nuttx_add_symtab)
@@ -573,6 +583,11 @@ if(NOT CONFIG_BUILD_KERNEL)
 
 endif()
 
+# after we traverse all build directories unify all target dependencies and all
+# romfs target
+process_all_target_dependencies()
+process_all_directory_romfs()
+
 # Link step ##################################################################
 
 # Get linker script to use
@@ -736,7 +751,7 @@ endif()
 # Generate system map using the compiler toolchain. Conventionally, the tool
 # which dump symbols are called nm, though, some compiler toolchain may have a
 # different name.
-if(NOT WIN32)
+if(NOT CMAKE_HOST_WIN32)
   add_custom_command(
     OUTPUT System.map
     COMMAND

@@ -1,6 +1,8 @@
 /****************************************************************************
  * arch/arm/src/stm32/hardware/stm32_flash.h
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -201,7 +203,7 @@
 #      elif defined(CONFIG_STM32_FLASH_CONFIG_E)
 #        define STM32_FLASH_SIZE        128 * 4096
 #      endif
-#    elif defined(CONFIG_STM32_STM32G49XX) 
+#    elif defined(CONFIG_STM32_STM32G49XX)
 #      elif defined(CONFIG_STM32_FLASH_CONFIG_C)
 #        define STM32_FLASH_NPAGES      128
 #        define STM32_FLASH_PAGESIZE    2048

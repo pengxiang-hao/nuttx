@@ -1,6 +1,8 @@
 /****************************************************************************
  * fs/mqueue/mq_open.c
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -74,7 +76,7 @@ static int nxmq_file_close(FAR struct file *filep)
 {
   FAR struct inode *inode = filep->f_inode;
 
-  if (atomic_load(&inode->i_crefs) <= 0)
+  if (atomic_read(&inode->i_crefs) <= 0)
     {
       FAR struct mqueue_inode_s *msgq = inode->i_private;
 

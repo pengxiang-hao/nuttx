@@ -1,6 +1,8 @@
 /****************************************************************************
  * arch/mips/src/pic32mz/pic32mz_gpio.c
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -42,6 +44,12 @@
 /****************************************************************************
  * Pre-processor Definitions
  ****************************************************************************/
+
+/****************************************************************************
+ * Private Data
+ ****************************************************************************/
+
+static spinlock_t g_configgpio_lock = SP_UNLOCKED;
 
 /****************************************************************************
  * Public Data
@@ -171,7 +179,7 @@ int pic32mz_configgpio(pinset_t cfgset)
 
       base = g_gpiobase[port];
 
-      flags = spin_lock_irqsave(NULL);
+      flags = spin_lock_irqsave(&g_configgpio_lock);
 
       /* Is Slew Rate control enabled? */
 
@@ -241,7 +249,7 @@ int pic32mz_configgpio(pinset_t cfgset)
             }
         }
 
-      spin_unlock_irqrestore(NULL, flags);
+      spin_unlock_irqrestore(&g_configgpio_lock, flags);
       return OK;
     }
 

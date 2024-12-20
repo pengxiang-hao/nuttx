@@ -30,6 +30,7 @@
 #include <nuttx/config.h>
 
 #include <nuttx/compiler.h>
+#include <nuttx/fs/ioctl.h>
 #include <nuttx/fs/uio.h>
 
 #include <sys/uio.h>
@@ -48,6 +49,8 @@
 #include <nuttx/spawn.h>
 #include <nuttx/queue.h>
 #include <nuttx/irq.h>
+#include <nuttx/spinlock_type.h>
+#include <nuttx/atomic.h>
 
 /****************************************************************************
  * Pre-processor Definitions
@@ -251,33 +254,6 @@ struct file_operations
 /* This structure provides information about the state of a block driver */
 
 #ifndef CONFIG_DISABLE_MOUNTPOINT
-struct geometry
-{
-  bool      geo_available;    /* true: The device is available */
-  bool      geo_mediachanged; /* true: The media has changed since last query */
-  bool      geo_writeenabled; /* true: It is okay to write to this device */
-  blkcnt_t  geo_nsectors;     /* Number of sectors on the device */
-  blksize_t geo_sectorsize;   /* Size of one sector */
-
-  /* NULL-terminated string representing the device model */
-
-  char      geo_model[NAME_MAX + 1];
-};
-
-struct partition_info_s
-{
-  size_t    numsectors;   /* Number of sectors in the partition */
-  size_t    sectorsize;   /* Size in bytes of a single sector */
-  off_t     startsector;  /* Offset to the first section/block of the
-                           * managed sub-region */
-
-  /* NULL-terminated string representing the name of the parent node of the
-   * partition.
-   */
-
-  char      parent[NAME_MAX + 1];
-};
-
 /* This structure is provided by block devices when they register with the
  * system.  It is used by file systems to perform filesystem transfers.  It
  * differs from the normal driver vtable in several ways -- most notably in
@@ -429,7 +405,7 @@ struct inode
   FAR struct inode *i_parent;   /* Link to parent level inode */
   FAR struct inode *i_peer;     /* Link to same level inode */
   FAR struct inode *i_child;    /* Link to lower level inode */
-  atomic_short      i_crefs;    /* References to inode */
+  atomic_t          i_crefs;    /* References to inode */
   uint16_t          i_flags;    /* Flags for inode */
   union inode_ops_u u;          /* Inode operations */
   ino_t             i_ino;      /* Inode serial number */
@@ -486,7 +462,7 @@ struct file
 {
   int               f_oflags;   /* Open mode flags */
 #ifdef CONFIG_FS_REFCOUNT
-  int               f_refs;     /* Reference count */
+  atomic_t          f_refs;     /* Reference count */
 #endif
   off_t             f_pos;      /* File position */
   FAR struct inode *f_inode;    /* Driver or file system interface */
@@ -517,8 +493,8 @@ struct file
 
 struct filelist
 {
+  spinlock_t        fl_lock;    /* Manage access to the file list */
   uint8_t           fl_rows;    /* The number of rows of fl_files array */
-  uint8_t           fl_crefs;   /* The references to filelist */
   FAR struct file **fl_files;   /* The pointer of two layer file descriptors array */
 
   /* Pre-allocated files to avoid allocator access during thread creation
@@ -677,6 +653,34 @@ int register_driver(FAR const char *path,
 int register_blockdriver(FAR const char *path,
                          FAR const struct block_operations *bops,
                          mode_t mode, FAR void *priv);
+#endif
+
+/****************************************************************************
+ * Name: register_merge_blockdriver
+ *
+ * Description:
+ *   This function registers a block driver that presents a contiguous block
+ * device composed of multiple, non-contiguous partitions.  The partitions
+ * are specified by the variable argument list which has 'nparts' elements.
+ *
+ * Input Parameters:
+ *   merge - The partition name to be merged.
+ *   ...   - The variable argument list for partition names.
+ *
+ *  Usage example for merging the factory partition and reserve partition
+ *  into the merge partition:
+ *
+ * register_merge_blockdriver("/dev/merge", "/dev/factory",
+ *                            "/dev/reserve", NULL);
+ *
+ * Returned Value:
+ *   Zero on success;
+ *   Negated errno value is returned on a failure
+ *
+ ****************************************************************************/
+
+#ifndef CONFIG_DISABLE_MOUNTPOINT
+int register_merge_blockdriver(FAR const char *merge, ...);
 #endif
 
 /****************************************************************************
@@ -901,16 +905,6 @@ void files_dumplist(FAR struct filelist *list);
 #else
 #  define files_dumplist(l)
 #endif
-
-/****************************************************************************
- * Name: files_getlist
- *
- * Description:
- *   Get the list of files by tcb.
- *
- ****************************************************************************/
-
-FAR struct filelist *files_getlist(FAR struct tcb_s *tcb);
 
 /****************************************************************************
  * Name: files_putlist

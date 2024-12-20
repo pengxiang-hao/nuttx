@@ -1,6 +1,8 @@
 /****************************************************************************
  * arch/arm64/src/common/arm64_cpustart.c
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -103,13 +105,6 @@ uint64_t *const g_cpu_int_fiq_stacktop[CONFIG_SMP_NCPUS] =
 /****************************************************************************
  * Private Functions
  ****************************************************************************/
-
-static inline void local_delay(void)
-{
-  for (volatile int i = 0; i < 1000; i++)
-    {
-    }
-}
 
 static void arm64_smp_init_top(void)
 {

@@ -879,7 +879,7 @@ static void *esp_spin_lock_create(void)
       DEBUGPANIC();
     }
 
-  spin_initialize(lock, SP_UNLOCKED);
+  spin_lock_init(lock);
 
   return lock;
 }
@@ -5965,7 +5965,7 @@ int esp_wifi_softap_password(struct iwreq *iwr, bool set)
 
       if (ext->alg != IW_ENCODE_ALG_NONE)
         {
-          memcpy(wifi_cfg.sta.password, pdata, len);
+          memcpy(wifi_cfg.ap.password, pdata, len);
         }
 
       if (g_softap_started)

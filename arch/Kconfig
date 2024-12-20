@@ -28,6 +28,7 @@ config ARCH_ARM64
 	select ALARM_ARCH
 	select ARCH_HAVE_BACKTRACE
 	select ARCH_HAVE_INTERRUPTSTACK
+	select ARCH_HAVE_FORK if !BUILD_KERNEL
 	select ARCH_HAVE_STACKCHECK
 	select ARCH_HAVE_CUSTOMOPT
 	select ARCH_HAVE_STDARG_H
@@ -144,7 +145,7 @@ config ARCH_X86_64
 	select LIBC_ARCH_ELF_64BIT if LIBC_ARCH_ELF
 	select ARCH_TOOLCHAIN_GNU
 	select ARCH_HAVE_BACKTRACE
-	select ARCH_HAVE_FORK
+	select ARCH_HAVE_FORK if !BUILD_KERNEL
 	select ARCH_HAVE_SETJMP
 	select ARCH_HAVE_PERF_EVENTS
 	---help---
@@ -277,10 +278,6 @@ endif #ARCH_CHIP_CUSTOM
 
 source "$BINDIR/arch/dummy/Kconfig"
 
-config ARCH_TOOLCHAIN_IAR
-	bool
-	default n
-
 config ARCH_TOOLCHAIN_GNU
 	bool
 	default n
@@ -290,13 +287,22 @@ config ARCH_TOOLCHAIN_CLANG
 	select ARCH_TOOLCHAIN_GNU
 	default n
 
-config ARCH_TOOLCHAIN_TASKING
+config ARCH_TOOLCHAIN_GCC
 	bool
+	select ARCH_TOOLCHAIN_GNU
 	default n
 
 config ARCH_TOOLCHAIN_GHS
 	bool
 	select ARCH_TOOLCHAIN_GNU
+	default n
+
+config ARCH_TOOLCHAIN_IAR
+	bool
+	default n
+
+config ARCH_TOOLCHAIN_TASKING
+	bool
 	default n
 
 config ARCH_GNU_NO_WEAKFUNCTIONS
@@ -482,6 +488,11 @@ config ARCH_HAVE_RESET
 config ARCH_HAVE_TESTSET
 	bool
 	default n
+
+config ARCH_HAVE_CUSTOM_TESTSET
+	bool
+	default n
+	select ARCH_HAVE_TESTSET
 
 config ARCH_HAVE_THREAD_LOCAL
 	bool
@@ -1267,11 +1278,6 @@ config ARCH_HIPRI_INTERRUPT
 		general feature is not conceptually unique to the Cortex-M but if it
 		is extended to any other family, then this discussion will have to
 		be generalized.
-
-		If ARMV7M_USEBASEPRI is selected, then interrupts will be disabled
-		by setting the BASEPRI register to NVIC_SYSH_DISABLE_PRIORITY so
-		that most interrupts will not have execution priority.  SVCall must
-		have execution priority in all cases.
 
 		In the normal cases, interrupts are not nest-able and all interrupts
 		run at an execution priority between NVIC_SYSH_PRIORITY_MIN and

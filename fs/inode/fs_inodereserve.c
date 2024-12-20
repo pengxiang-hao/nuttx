@@ -1,6 +1,8 @@
 /****************************************************************************
  * fs/inode/fs_inodereserve.c
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -86,7 +88,7 @@ static FAR struct inode *inode_alloc(FAR const char *name, mode_t mode)
   if (inode)
     {
       inode->i_ino   = g_ino++;
-      atomic_init(&inode->i_crefs, 1);
+      atomic_set(&inode->i_crefs, 1);
 #ifdef CONFIG_PSEUDOFS_ATTRIBUTES
       inode->i_mode  = mode;
       clock_gettime(CLOCK_REALTIME, &inode->i_atime);

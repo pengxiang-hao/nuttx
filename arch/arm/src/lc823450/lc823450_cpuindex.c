@@ -1,6 +1,8 @@
 /****************************************************************************
  * arch/arm/src/lc823450/lc823450_cpuindex.c
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -31,10 +33,6 @@
 /****************************************************************************
  * Pre-processor Definitions
  ****************************************************************************/
-
-#define LC823450_CORE_BASE  0xe00fe000
-#define CORE_COREID (LC823450_CORE_BASE + 0x0)
-#define   CORE_COREID_ID  (0x1 << 0)
 
 /****************************************************************************
  * Public Functions

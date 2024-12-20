@@ -1,6 +1,8 @@
 /****************************************************************************
  * drivers/rpmsg/rpmsg_port_spi.c
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -93,7 +95,7 @@ struct rpmsg_port_spi_s
   uint16_t                       rxavail;
   uint16_t                       rxthres;
 
-  atomic_int                     transferring;
+  atomic_t                       transferring;
 };
 
 /****************************************************************************
@@ -298,7 +300,7 @@ static void rpmsg_port_spi_complete_handler(FAR void *arg)
     }
 
 out:
-  if (atomic_exchange(&rpspi->transferring, 0) > 1)
+  if (atomic_xchg(&rpspi->transferring, 0) > 1)
     {
       rpmsg_port_spi_exchange(rpspi);
     }

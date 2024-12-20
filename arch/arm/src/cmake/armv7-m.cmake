@@ -1,6 +1,8 @@
 # ##############################################################################
 # arch/arm/src/cmake/armv7-m.cmake
 #
+# SPDX-License-Identifier: Apache-2.0
+#
 # Licensed to the Apache Software Foundation (ASF) under one or more contributor
 # license agreements.  See the NOTICE file distributed with this work for
 # additional information regarding copyright ownership.  The ASF licenses this
@@ -28,6 +30,8 @@ set(TOOLCHAIN_ARCH_FILE)
 
 if(CONFIG_ARCH_TOOLCHAIN_CLANG) # clang
   set(TOOLCHAIN_ARCH_FILE armv7-m_clang)
+elseif(CONFIG_ARCH_TOOLCHAIN_ARMCLANG) # arm clang
+  set(TOOLCHAIN_ARCH_FILE armv7-m_armclang)
 elseif(CONFIG_ARCH_TOOLCHAIN_GHS) # greenhills
   set(TOOLCHAIN_ARCH_FILE armv7-m_ghs)
 else() # gcc

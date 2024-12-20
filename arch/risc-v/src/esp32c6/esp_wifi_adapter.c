@@ -1,6 +1,8 @@
 /****************************************************************************
  * arch/risc-v/src/esp32c6/esp_wifi_adapter.c
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -5170,7 +5172,7 @@ int esp_wifi_softap_password(struct iwreq *iwr, bool set)
 
       if (ext->alg != IW_ENCODE_ALG_NONE)
         {
-          memcpy(wifi_cfg.sta.password, pdata, len);
+          memcpy(wifi_cfg.ap.password, pdata, len);
         }
 
       if (g_softap_started)

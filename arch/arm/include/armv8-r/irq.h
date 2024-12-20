@@ -1,6 +1,8 @@
 /****************************************************************************
  * arch/arm/include/armv8-r/irq.h
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -41,6 +43,10 @@
 /****************************************************************************
  * Pre-processor Prototypes
  ****************************************************************************/
+
+#ifdef __ghs__
+#  define __ARM_ARCH 8
+#endif
 
 /* IRQ Stack Frame Format:
  *
@@ -361,7 +367,7 @@ noinstrument_function static inline irqstate_t up_irq_save(void)
     (
       "\tmrs    %0, cpsr\n"
       "\tcpsid  i\n"
-#if defined(CONFIG_ARMV8R_DECODEFIQ)
+#if defined(CONFIG_ARCH_HIPRI_INTERRUPT)
       "\tcpsid  f\n"
 #endif
       : "=r" (cpsr)
@@ -382,7 +388,7 @@ static inline irqstate_t up_irq_enable(void)
     (
       "\tmrs    %0, cpsr\n"
       "\tcpsie  i\n"
-#if defined(CONFIG_ARMV8R_DECODEFIQ)
+#if defined(CONFIG_ARCH_HIPRI_INTERRUPT)
       "\tcpsie  f\n"
 #endif
       : "=r" (cpsr)
@@ -461,36 +467,15 @@ static inline_function uint32_t up_getsp(void)
   return sp;
 }
 
-/****************************************************************************
- * Name:
- *   up_current_regs/up_set_current_regs
- *
- * Description:
- *   We use the following code to manipulate the TPIDRPRW register,
- *   which exists uniquely for each CPU and is primarily designed to store
- *   current thread information. Currently, we leverage it to store interrupt
- *   information, with plans to further optimize its use for storing both
- *   thread and interrupt information in the future.
- *
- ****************************************************************************/
-
 noinstrument_function
-static inline_function uint32_t *up_current_regs(void)
+static inline_function void up_set_interrupt_context(bool flag)
 {
-  return (uint32_t *)CP15_GET(TPIDRPRW);
+  CP15_MODIFY(flag, 1ul, TPIDRPRW);
 }
 
-noinstrument_function
-static inline_function void up_set_current_regs(uint32_t *regs)
-{
-  CP15_SET(TPIDRPRW, regs);
-}
-
-noinstrument_function
-static inline_function bool up_interrupt_context(void)
-{
-  return up_current_regs() != NULL;
-}
+#define up_this_task()         ((struct tcb_s *)(CP15_GET(TPIDRPRW) & ~1ul))
+#define up_update_task(t)      CP15_MODIFY(t, ~1ul, TPIDRPRW)
+#define up_interrupt_context() (CP15_GET(TPIDRPRW) & 1)
 
 /****************************************************************************
  * Public Data

@@ -1,6 +1,8 @@
 /****************************************************************************
  * arch/risc-v/src/common/espressif/esp_temperature_sensor.c
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -611,7 +613,7 @@ static int esp_temperature_sensor_fetch(struct sensor_lowerhalf_s *lower,
  *
  ****************************************************************************/
 
-static int esp_temperature_sensor_thread(int argc, FAR char **argv)
+static int esp_temperature_sensor_thread(int argc, char **argv)
 {
   struct esp_temp_priv_s *priv =
       (struct esp_temp_priv_s *)((uintptr_t)strtoul(argv[1], NULL, 16));
@@ -782,7 +784,7 @@ int esp_temperature_sensor_initialize(struct esp_temp_sensor_config_t cfg)
   int ret = 0;
   struct esp_temp_priv_s *priv = &esp_temp_priv;
 #ifdef CONFIG_ESPRESSIF_TEMP_UORB_POLL
-  FAR char *argv[2];
+  char *argv[2];
   char arg1[32];
 #endif
 

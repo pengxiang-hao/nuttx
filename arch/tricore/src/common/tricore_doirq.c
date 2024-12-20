@@ -1,6 +1,8 @@
 /****************************************************************************
  * arch/tricore/src/common/tricore_doirq.c
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -44,11 +46,19 @@
 
 IFX_INTERRUPT_INTERNAL(tricore_doirq, 0, 255)
 {
+  struct tcb_s **running_task = &g_running_tasks[this_cpu()];
+  struct tcb_s *tcb;
+
 #ifdef CONFIG_SUPPRESS_INTERRUPTS
   PANIC();
 #else
   Ifx_CPU_ICR icr;
   uintptr_t *regs;
+
+  if (*running_task != NULL)
+    {
+      (*running_task)->xcp.regs = regs;
+    }
 
   icr.U = __mfcr(CPU_ICR);
   regs = (uintptr_t *)__mfcr(CPU_PCXI);
@@ -78,6 +88,8 @@ IFX_INTERRUPT_INTERNAL(tricore_doirq, 0, 255)
 
   if (regs != up_current_regs())
     {
+      tcb = this_task();
+
 #ifdef CONFIG_ARCH_ADDRENV
       /* Make sure that the address environment for the previously
        * running task is closed down gracefully (data caches dump,
@@ -85,7 +97,7 @@ IFX_INTERRUPT_INTERNAL(tricore_doirq, 0, 255)
        * thread at the head of the ready-to-run list.
        */
 
-      addrenv_switch(NULL);
+      addrenv_switch(tcb);
 #endif
 
       /* Record the new "running" task when context switch occurred.
@@ -93,7 +105,7 @@ IFX_INTERRUPT_INTERNAL(tricore_doirq, 0, 255)
        * crashes.
        */
 
-      g_running_tasks[this_cpu()] = this_task();
+      g_running_tasks[this_cpu()] = tcb;
 
       __mtcr(CPU_PCXI, (uintptr_t)up_current_regs());
       __isync();

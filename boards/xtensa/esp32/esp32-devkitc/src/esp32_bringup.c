@@ -1,6 +1,8 @@
 /****************************************************************************
  * boards/xtensa/esp32/esp32-devkitc/src/esp32_bringup.c
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -92,8 +94,9 @@
 #  include "esp32_i2s.h"
 #endif
 
-#ifdef CONFIG_ESP32_PCNT_AS_QE
-#  include "board_qencoder.h"
+#ifdef CONFIG_ESP_PCNT
+#  include "espressif/esp_pcnt.h"
+#  include "esp32_board_pcnt.h"
 #endif
 
 #ifdef CONFIG_I2CMULTIPLEXER_TCA9548A
@@ -176,6 +179,10 @@
 
 #ifdef CONFIG_ESP_MCPWM
 #  include "esp32_board_mcpwm.h"
+#endif
+
+#ifdef CONFIG_SYSTEM_NXDIAG_ESPRESSIF_CHIP_WO_TOOL
+#  include "espressif/esp_nxdiag.h"
 #endif
 
 #include "esp32-devkitc.h"
@@ -469,16 +476,11 @@ int esp32_bringup(void)
     }
 #endif
 
-#ifdef CONFIG_SENSORS_QENCODER
-  /* Initialize and register the qencoder driver */
-
-  ret = board_qencoder_initialize(0, PCNT_QE0_ID);
-  if (ret != OK)
+#ifdef CONFIG_ESP_PCNT
+  ret = board_pcnt_initialize();
+  if (ret < 0)
     {
-      syslog(LOG_ERR,
-             "ERROR: Failed to register the qencoder: %d\n",
-             ret);
-      return ret;
+      syslog(LOG_ERR, "ERROR: board_pcnt_initialize failed: %d\n", ret);
     }
 #endif
 
@@ -753,6 +755,14 @@ int esp32_bringup(void)
     {
       syslog(LOG_ERR, "ERROR: board_apds9960_initialize() failed: %d\n",
              ret);
+    }
+#endif
+
+#ifdef CONFIG_SYSTEM_NXDIAG_ESPRESSIF_CHIP_WO_TOOL
+  ret = esp_nxdiag_initialize();
+  if (ret < 0)
+    {
+      syslog(LOG_ERR, "ERROR: esp_nxdiag_initialize failed: %d\n", ret);
     }
 #endif
 

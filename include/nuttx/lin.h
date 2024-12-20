@@ -76,13 +76,13 @@
  * The error frame consists of err_flag（LIN_ERR_FLAG)、err_class
  * (defined in data[0]) and err_reason(defined in data[1] to data[4]).
  * The error frame is described using the following structure:
- * struct can_frame {
+ * begin_packed_struct struct can_frame {
  *    canid_t can_id;
  *    uint8_t can_dlc;
  *    uint16_t flags;
  *    uint8_t __res1;
  *    uint8_t data[CAN_MAX_DLEN] __attribute__((aligned(8)));
- *  }__attribute__((packed));
+ *  } end_packed_struct;
  *
  * Error frame description format：
  *
@@ -113,7 +113,7 @@
 
 #define LIN_ERR_TX_UNSPEC         0x00     /* Unspecified error */
 #define LIN_ERR_TX_BREAK_TMO      (1 << 0) /* Bit 0: Master send break field, but detect break event timeout */
-#define LIN_ERR_TX_SYNC_TMO       (1 << 1) /* Bit 1: Master send sync timeout (receive back timeout) */ 
+#define LIN_ERR_TX_SYNC_TMO       (1 << 1) /* Bit 1: Master send sync timeout (receive back timeout) */
 #define LIN_ERR_TX_PID_TMO        (1 << 2) /* Bit 2: Master send pid timeout (receive back timeout) */
 #define LIN_ERR_TX_DATA_TMO       (1 << 3) /* Bit 3: Master/slave send data timeout (receive back timeout) */
 #define LIN_ERR_TX_CHECKSUM_TMO   (1 << 4) /* Bit 4: Master/slave send checksum timeout(receive back timeout) */

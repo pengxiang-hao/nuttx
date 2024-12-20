@@ -1,6 +1,8 @@
 /****************************************************************************
  * drivers/thermal/thermal_dummy.c
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -346,7 +348,7 @@ int thermal_dummy_init(void)
                                       &g_dummy_zone_ops, &g_dummy_params);
   if (zdev == NULL)
     {
-      therr("Register zone deivce failed!\n");
+      therr("Register zone device failed!\n");
       return -ENOTSUP;
     }
 

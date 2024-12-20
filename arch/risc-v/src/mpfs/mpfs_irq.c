@@ -1,6 +1,8 @@
 /****************************************************************************
  * arch/risc-v/src/mpfs/mpfs_irq.c
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -62,6 +64,13 @@ void up_irqinitialize(void)
   size_t intstack_size = (CONFIG_ARCH_INTERRUPTSTACK & ~15);
   riscv_stack_color(g_intstackalloc, intstack_size);
 #endif
+
+  /* Set priority for all global interrupts to 1 (lowest) */
+
+  for (int id = 1; id <= NR_IRQS; id++)
+    {
+      putreg32(1, MPFS_PLIC_PRIORITY + (4 * id));
+    }
 
   /* Attach the common interrupt handler */
 

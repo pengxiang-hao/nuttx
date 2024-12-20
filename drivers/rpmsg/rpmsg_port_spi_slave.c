@@ -1,6 +1,8 @@
 /****************************************************************************
  * drivers/rpmsg/rpmsg_port_spi_slave.c
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.  The
@@ -24,9 +26,9 @@
 
 #include <debug.h>
 #include <errno.h>
-#include <stdatomic.h>
 #include <stdio.h>
 
+#include <nuttx/atomic.h>
 #include <nuttx/crc16.h>
 #include <nuttx/kmalloc.h>
 #include <nuttx/kthread.h>
@@ -95,7 +97,7 @@ struct rpmsg_port_spi_s
   uint16_t                       rxavail;
   uint16_t                       rxthres;
 
-  atomic_int                     transferring;
+  atomic_t                       transferring;
 };
 
 /****************************************************************************
@@ -367,7 +369,7 @@ static void rpmsg_port_spi_slave_notify(FAR struct spi_slave_dev_s *dev,
     }
 
 out:
-  if (atomic_exchange(&rpspi->transferring, 0) > 1 ||
+  if (atomic_xchg(&rpspi->transferring, 0) > 1 ||
       (rpspi->txavail > 0 && rpmsg_port_queue_nused(&rpspi->port.txq) > 0))
     {
       rpmsg_port_spi_exchange(rpspi);

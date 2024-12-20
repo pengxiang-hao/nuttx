@@ -334,10 +334,6 @@ extern "C"
 
 #ifdef __HAVE_KERNEL_GLOBALS
 EXTERN volatile clock_t g_system_ticks;
-
-#  ifndef CONFIG_SYSTEM_TIME64
-#    define clock_systime_ticks() g_system_ticks
-#  endif
 #endif
 
 /****************************************************************************
@@ -391,7 +387,7 @@ EXTERN volatile clock_t g_system_ticks;
  *
  * Input Parameters:
  *   ts1 and ts2: The two timespecs to be added
- *   t23: The location to return the result (may be ts1 or ts2)
+ *   ts3: The location to return the result (may be ts1 or ts2)
  *
  * Returned Value:
  *   None
@@ -422,7 +418,7 @@ EXTERN volatile clock_t g_system_ticks;
  *
  * Input Parameters:
  *   ts1 and ts2: The two timespecs to be subtracted (ts1 - ts2)
- *   t23: The location to return the result (may be ts1 or ts2)
+ *   ts3: The location to return the result (may be ts1 or ts2)
  *
  * Returned Value:
  *   None
@@ -695,9 +691,7 @@ void clock_resynchronize(FAR struct timespec *rtc_diff);
  *
  ****************************************************************************/
 
-#if !defined(__HAVE_KERNEL_GLOBALS) || defined(CONFIG_SYSTEM_TIME64)
 clock_t clock_systime_ticks(void);
-#endif
 
 /****************************************************************************
  * Name: clock_systime_timespec
